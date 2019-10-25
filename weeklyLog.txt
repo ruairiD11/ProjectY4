@@ -1,9 +1,10 @@
+Week 1
 01/10/2019
 Created my first prototype of the end effector of the robot using cardboard and some gears 
 to demonstrate it's basic functionality
 Have ordered electronic components online
-
 -------------------------------------------------------------------------------------------
+Week 2
 13/10/2019
 Configured DC motor to be controlled by a push button. Next thing to do is build a prototype
 of robot gripper, to be controlled by the motor.
@@ -11,8 +12,8 @@ Also did a bit of configuring for the MPU-6050 accelerometer with the Teensy LC,
 DC motors to arrive.
 Getting the prototype of the gripper controlled by the motor is what I need to have done by the end of this month
 to keep on schedule.
-
 -------------------------------------------------------------------------------------------
+Week 3
 20/10/2019
 Built my first semi-functioning prototype and have it being controlled by a push button using previous circuit.
 This prototype needs more work and could possibly start building another version soon.
@@ -20,7 +21,13 @@ I need to incorporate the L293D IC chip to be able to open and close the gripper
 Will order this week
 
 -------------------------------------------------------------------------------------------
+Week 4
 24/10/2019
 Implemented the L293D IC chip in hardware to act as a motor driver, allowing me to control the direction of the
 motor. I was able to control the direction using two physical buttons, and also through software using PWM.
 Next thing to do is to implement this on my prototype, so I can open and close the gripper with two buttons.
+
+25/10/2019
+Two push-buttons not working - tried to test them turning on an LED but they both seem to be damaged. Will need to
+get some more next week. In the meantime, getting the flex sensors configured. Built a circuit where the flex 
+sensor controls the brightness of an LED.
