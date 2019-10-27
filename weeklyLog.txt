@@ -31,3 +31,12 @@ Next thing to do is to implement this on my prototype, so I can open and close t
 Two push-buttons not working - tried to test them turning on an LED but they both seem to be damaged. Will need to
 get some more next week. In the meantime, getting the flex sensors configured. Built a circuit where the flex 
 sensor controls the brightness of an LED.
+
+27/10/2019
+Tested opening and closing my prototype 1.0 with two push-buttons. It works the moderately
+well for the first couple tests, but then the output isn't as good. I noticed that my prototype is consuming a lot of
+my 9V battery's power quite quickly, probably due to friction in the gears? Will need to keep in mind for next
+prototype. 
+Also configured a flex sensor and attached it to my glove. Works pretty well. Next thing to do is probably look at
+making a better prototype that can display a better output than the current one.
+-------------------------------------------------------------------------------------------
