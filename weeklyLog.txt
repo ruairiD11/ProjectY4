@@ -40,3 +40,7 @@ prototype.
 Also configured a flex sensor and attached it to my glove. Works pretty well. Next thing to do is probably look at
 making a better prototype that can display a better output than the current one.
 -------------------------------------------------------------------------------------------
+Week 5
+1/11/2019
+Servo motors arrived. These will be more suitable to my project as they are more accurate than DC motors. As I will
+be reading in analog signals from the flex sensor, I can simply map this value to the servo and it works very well. 
