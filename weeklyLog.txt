@@ -48,3 +48,14 @@ be reading in analog signals from the flex sensor, I can simply map this value t
 3/11/2019
 Went about building Prototype 2.0 but realised once I finished building it that it wasn't the right mechanism.
 However it did demonstrate to me that the servo motors are the better choice for the robot. 
+-------------------------------------------------------------------------------------------
+Week 6
+4/11/2019
+This week I'll focus on maybe making another prototype. The last prototype I made gears out of cardboard which
+wasn't ideal, so I've ordered some plastic gears online to hopefully be here this week or next. I have attached most
+of the flex sensors to my glove. Also waiting on a couple of Wi-fi modules. I will continue doing some research on 
+optimizing my code in the Arduino IDE. Last week I was experimenting programming in an alternative IDE to arduino as
+I jus't dont enjoy using the Arduino IDE too much. Programming in something like Atmel Studio would be nice as it would
+just be plain C. However, I would be reading/writing directly to the registers of the ATMega326P on the Arduino Uno,
+which could be more time consuming. This method would be more efficient in terms of memory, so I may have to consider this
+at a later stage.
