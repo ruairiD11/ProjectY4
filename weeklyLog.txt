@@ -59,3 +59,11 @@ I jus't dont enjoy using the Arduino IDE too much. Programming in something like
 just be plain C. However, I would be reading/writing directly to the registers of the ATMega326P on the Arduino Uno,
 which could be more time consuming. This method would be more efficient in terms of memory, so I may have to consider this
 at a later stage.
+-------------------------------------------------------------------------------------------
+Week 7 
+16/11/2019
+Was sick for the last week or so, so haven't made any progress until today. 
+I had ordered some gears online to use for building the next prototype, but I'm not sure if they will arrive in time
+for the demonstration in December. So I've built a prototype today that works quite well in demonstrating the 
+mechanism of the gripper. I can control it from a flex sensor on the glove, I will upload a video of it working and 
+post the link in the VideoLinks document.
