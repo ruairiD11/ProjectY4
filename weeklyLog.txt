@@ -67,3 +67,8 @@ I had ordered some gears online to use for building the next prototype, but I'm 
 for the demonstration in December. So I've built a prototype today that works quite well in demonstrating the 
 mechanism of the gripper. I can control it from a flex sensor on the glove, I will upload a video of it working and 
 post the link in the VideoLinks document.
+
+17/11/2019
+Put together a preliminary circuit for the glove module. It includes three flex sensors connected attached to the 
+glove. I've uploaded some code that I've written to read the value of each flex sensor on each finger and calculate
+the average, as this will be the value sent to the Servo motor. 
