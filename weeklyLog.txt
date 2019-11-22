@@ -72,3 +72,16 @@ post the link in the VideoLinks document.
 Put together a preliminary circuit for the glove module. It includes three flex sensors connected attached to the 
 glove. I've uploaded some code that I've written to read the value of each flex sensor on each finger and calculate
 the average, as this will be the value sent to the Servo motor. 
+-------------------------------------------------------------------------------------------
+Week 8
+22/11/2019
+Using the average value read from the three flex sensors can work well at times, and at other times be erratic and
+give an inconsistent output. This was to be expected, as reading from three sensors rather than one, means the output
+may not be as accurate. I think this is also down to the connections to the sensors - when opening and closing my hand,
+the sensors can momentarily disconnect from the wires reading the data, causing some inaccuracy. This is something I 
+will look to improve, either with the hardware connection, or maybe there is a better software solution.
+Also, in my estimated timeline for the project, I was hoping to have the glove and prototype communicate wirelessly,
+but after attempting to setup one of my Wi-fi modules, I ended up crashing my home router. So this is something I need
+to spend more time at during December/January, so that I have a better idea of what is happening. Because of this, I
+will hope to, instead, set up the accelerometer on the glove for the demo in December. This was orginally what I had planned 
+to do in January. So I'm basically just swapping my estimations for December and January.
