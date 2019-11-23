@@ -85,3 +85,11 @@ but after attempting to setup one of my Wi-fi modules, I ended up crashing my ho
 to spend more time at during December/January, so that I have a better idea of what is happening. Because of this, I
 will hope to, instead, set up the accelerometer on the glove for the demo in December. This was orginally what I had planned 
 to do in January. So I'm basically just swapping my estimations for December and January.
+
+23/11/2019
+I've added another servo to my prototype to control the roll of the gripper. It is controlled by an accelerometer that is
+part of the glove module. I've uploaded a video of my first test of the prototype to be demonstrated in December. It still 
+needs work. I am still getting an inconsistent output on the gripper due to the problems with reading the three flex sensors.
+The roll works quite well.
+I won't be adding anymore features to this prototype before the demo. I will focus on improving it's performance, optimizing 
+my code in any way I can, and just prepare for the demo in general.
