@@ -93,3 +93,8 @@ needs work. I am still getting an inconsistent output on the gripper due to the 
 The roll works quite well.
 I won't be adding anymore features to this prototype before the demo. I will focus on improving it's performance, optimizing 
 my code in any way I can, and just prepare for the demo in general.
+-------------------------------------------------------------------------------------------
+Week 9
+28/11/2019
+I don't think I will be making any progress this week as I'm too busy with other modules at the moment.
+I hope to dedicate atleast a few hours a day next week, in preparation for my demo on Monday week.
