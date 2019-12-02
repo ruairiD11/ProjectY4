@@ -53,7 +53,7 @@ void setup() {
     #endif
   
   Serial.begin(38400);
-  roll.attach(9);
+  roll.attach(21);
   roll.write(0);
   gripper.attach(10);
   gripper.write(0);
@@ -66,16 +66,21 @@ void setup() {
 }
 
 void loop() {
-  indexValue = analogRead(INDEX); 
+  indexValue = analogRead(INDEX);
+  indexValue = constrain(indexValue, 550, 780); 
+  
   middleValue = analogRead(MIDDLE);
+  middleValue = constrain(middleValue, 550, 780);
+  
   thirdValue = analogRead(THIRD);
+  thirdValue = constrain(thirdValue, 550, 780);
 
   // read raw accel/gyro measurements from device
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
   //Calculating the average of these three values
   // The average is the value that will be sent to the Servo Motor
-  sum = indexValue + middleValue + thirdValue;
+  /*sum = indexValue + middleValue + thirdValue;
   avg = sum/3;
 
   gripperVal = avg;
@@ -87,7 +92,27 @@ void loop() {
   rollVal = constrain(rollVal, 0, 180);
   
   roll.write(rollVal);
+  gripper.write(gripperVal);*/
+
+  sum = indexValue + thirdValue;
+  avg = sum/2;
+
+  gripperVal = avg;
+  gripperVal = map(gripperVal, 550, 780, 0, 180);
+  gripperVal = constrain(gripperVal, 0, 180);
+  
+
+  rollVal = ay;
+  rollVal = map(rollVal, -17000, 16000, 0, 180);
+  rollVal = constrain(rollVal, 0, 180);
+  
+  roll.write(rollVal);
   gripper.write(gripperVal);
+  
+  Serial.print("Roll: ");
+  Serial.print(rollVal);
+  Serial.print("\tGripper: ");
+  Serial.println(gripperVal);
 
   delay(100);
   
