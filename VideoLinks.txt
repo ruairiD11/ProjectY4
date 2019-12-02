@@ -6,3 +6,4 @@ https://www.youtube.com/watch?v=1w6xV2S_tN0
 https://www.youtube.com/watch?v=NUdAri9Zsls
 https://www.youtube.com/watch?v=Cp4iDKRcOb4  <-- MPU6050 controlling Servo
 https://www.youtube.com/watch?v=aNycaCkKZSw  <-- Prototype 2.0 First Test
+https://www.youtube.com/watch?v=qWH3m6JGZhc  <-- Test #2 - Only reading two flex sensors
