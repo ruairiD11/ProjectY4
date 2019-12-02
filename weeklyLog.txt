@@ -19,7 +19,6 @@ Built my first semi-functioning prototype and have it being controlled by a push
 This prototype needs more work and could possibly start building another version soon.
 I need to incorporate the L293D IC chip to be able to open and close the gripper (move the dc motor both directions) 
 Will order this week
-
 -------------------------------------------------------------------------------------------
 Week 4
 24/10/2019
@@ -98,3 +97,14 @@ Week 9
 28/11/2019
 I don't think I will be making any progress this week as I'm too busy with other modules at the moment.
 I hope to dedicate atleast a few hours a day next week, in preparation for my demo on Monday week.
+-------------------------------------------------------------------------------------------
+Week 10
+2/12/19
+I tested each flex sensor individually to isolate the sensor causing the problems. It was the middle flex sensor, so
+I have left it out during testing today. I hope to figure out tomorrow if it is a problem with the sensor, or just the
+connection (more likely the latter). I have tested the prototype a number of times today whilst just reading two flex sensors.
+I also added some code to constrain the values read from the flex sensors between a min and max. This means the output
+isn't as sporadic, as sometimes the values read could spike or plummet. I noticed another small problem when testing -
+sometimes one of the servos will just stop working. I think this is down to it not receiving enough power as the Teensy LC
+operates at 3.3V. I don't think I need to worry too much about this at the moment as the servos will eventually be powered
+by a controller with a higher operating voltage. I've uploaded a video of one of today's tests.
