@@ -108,3 +108,10 @@ isn't as sporadic, as sometimes the values read could spike or plummet. I notice
 sometimes one of the servos will just stop working. I think this is down to it not receiving enough power as the Teensy LC
 operates at 3.3V. I don't think I need to worry too much about this at the moment as the servos will eventually be powered
 by a controller with a higher operating voltage. I've uploaded a video of one of today's tests.
+
+4/12/19
+I read the raw values from all three flex sensors again to pin-point more accurate min and max values. I noticed that the middle
+sensor (min-550, max-730) would jump to above 1000 when the finger is in an open position. This is definitely a hardware problem, 
+but I've just used an if statement so see if it has gone over 1000, then set it to the minimum value 550 if it has. This works ok, 
+so I'm not going to worry about this hardware problem until after the demonstration. I also noticed that the wire connections must 
+be nice and snug to the flex sensors to get the most consistent output.
