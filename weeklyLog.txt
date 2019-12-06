@@ -115,3 +115,8 @@ sensor (min-550, max-730) would jump to above 1000 when the finger is in an open
 but I've just used an if statement so see if it has gone over 1000, then set it to the minimum value 550 if it has. This works ok, 
 so I'm not going to worry about this hardware problem until after the demonstration. I also noticed that the wire connections must 
 be nice and snug to the flex sensors to get the most consistent output.
+
+6/12/19
+Found a youtube video that explains the MPU 6050 in more detail in terms of reading and writing from its registers. I have changed my
+code to do this rather than use the example code for the MPU6050, as I feel it gives me a better understanding of what is happenning at
+the lower level. Have also tidied my code up into seperate functions, rather than one long loop function.
