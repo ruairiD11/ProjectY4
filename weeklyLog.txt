@@ -120,3 +120,23 @@ be nice and snug to the flex sensors to get the most consistent output.
 Found a youtube video that explains the MPU 6050 in more detail in terms of reading and writing from its registers. I have changed my
 code to do this rather than use the example code for the MPU6050, as I feel it gives me a better understanding of what is happenning at
 the lower level. Have also tidied my code up into seperate functions, rather than one long loop function.
+-------------------------------------------------------------------------------------------
+Week 11
+
+20/01/20 (Hours spent: ~6)
+The plan for the next week or two is to have all the functionality I had from first semester working with the ESP32. Then I can focus 
+on wifi communication.
+Tasks:
+	-Read values of flex sensors using ESP32
+	-Write values to servo motor
+
+Reflection:
+	-Managed to control servo motor using PWM
+
+Issues:
+	Hardware
+		1. Noticed when trying to read flex sensor with ESP32 that the sensor needed to be bent in the opposite direction to which 
+		 it would normally need to be in order to see a change in output, which was odd. Still unresolved
+	Software
+		2. Small issue. I get 'errors' saying some API variables 'cannot be resolved' even though I've included the required header 
+		 files and code still builds and flashes to the ESP32 fine. Will need to be resolved eventually as it doesn't look good
