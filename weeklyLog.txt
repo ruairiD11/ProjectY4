@@ -140,3 +140,7 @@ Issues:
 	Software
 		2. Small issue. I get 'errors' saying some API variables 'cannot be resolved' even though I've included the required header 
 		 files and code still builds and flashes to the ESP32 fine. Will need to be resolved eventually as it doesn't look good
+
+26/01/20 (Hours spent: ~5)
+Almost have full functionality from last semester now working with ESP32. All thats left to do is implement accelerometer, and can then work
+on wireless communication.
