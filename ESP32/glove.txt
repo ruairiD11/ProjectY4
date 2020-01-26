@@ -1,0 +1,45 @@
+/*		Ruairi Doherty
+ * 		26/01/2020
+ * 		Final Year Project - Remote-Robot
+ * 		Glove Module
+ */
+
+#include "freertos/FreeRTOS.h"
+#include "esp_wifi.h"
+#include "esp_system.h"
+#include "esp_event.h"
+#include "nvs_flash.h"
+#include "driver/gpio.h"
+#include "driver/adc.h"
+#include "driver/ledc.h"
+
+
+void read_flex(void* pvParameters)
+{
+	adc1_config_width(ADC_WIDTH_12Bit);
+	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db); //GPIO 36 - THIRD
+	adc1_config_channel_atten(ADC1_CHANNEL_3, ADC_ATTEN_11db); //GPIO 39 - MIDDLE
+	adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db); //GPIO 34 - INDEX
+
+	while(1) {
+		int index = adc1_get_raw(ADC1_CHANNEL_6);
+		int middle = adc1_get_raw(ADC1_CHANNEL_3);
+		int third = adc1_get_raw(ADC1_CHANNEL_0);
+		if(middle == 4095)
+			middle = 2100;
+		int sum = index+middle+third;
+		int avg = sum/3;
+
+		printf("Avg: %d\n", avg);
+		//printf("Index: %d   Middle: %d   Third: %d\n", index, middle, third);
+
+		vTaskDelay(50/portTICK_PERIOD_MS);
+	}
+	vTaskDelete(NULL);
+}
+
+void app_main(void)
+{
+	xTaskCreate(&read_flex, "read_flex", 2048, NULL, 5, NULL);
+}
+
