@@ -144,3 +144,9 @@ Issues:
 26/01/20 (Hours spent: ~5)
 Almost have full functionality from last semester now working with ESP32. All thats left to do is implement accelerometer, and can then work
 on wireless communication.
+-------------------------------------------------------------------------------------------
+Week 12
+27/01/20 (Hours spent: ~4)
+I spent today setting up the accelerometer and studying the esp-idf api reference for the I2c driver on the ESP32, to get a good understanding
+of the api functions and variables used to read and write to/from the MPU6050's accelerometer. 
+The next thing to do is to setup another ESP32, and have it receive the data read from the sensors with my original ESP32, using wifi.
