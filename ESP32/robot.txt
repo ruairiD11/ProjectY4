@@ -1,0 +1,70 @@
+/*		Ruairi Doherty
+ * 		Created on 29/01/2020
+ * 		Final Year Project - Remote-Robot
+ * 		Robot Module
+ */
+
+#include "freertos/FreeRTOS.h"
+#include "esp_wifi.h"
+#include "esp_system.h"
+#include "esp_event.h"
+#include "nvs_flash.h"
+#include "driver/gpio.h"
+#include "sdkconfig.h"
+
+//const char* SSID = "robot_module";
+//const char* PASSWORD = "123";
+
+void wifi_init(void* pvParameters)
+{
+	printf("Setting up AP\n");
+	//Initializing the wifi environment and setting up as AP
+	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
+	esp_wifi_init(&config);
+	wifi_mode_t wifi_mode = WIFI_MODE_AP;
+	esp_wifi_set_mode(wifi_mode);
+
+	wifi_config_t apConfig = {
+			.ap = {
+					.ssid = "robot_module",
+					.ssid_len = 0,
+					.password = "123",
+					.channel = 0,
+					.authmode = WIFI_AUTH_OPEN,
+					.ssid_hidden = 0,
+					.max_connection = 4,
+					.beacon_interval = 100
+			}
+	};
+
+	esp_wifi_set_config(WIFI_IF_AP, &apConfig);
+	esp_wifi_start();
+
+	printf("AP started\n");
+
+	while(1) {
+		printf("Running\n");
+		/*if(SYSTEM_EVENT_AP_STACONNECTED == true) {
+			printf("Station connected\n");
+		}
+		else if(SYSTEM_EVENT_AP_STADISCONNECTED == true) {
+			printf("Station disconnected\n");
+		}*/
+		vTaskDelay(500/portTICK_PERIOD_MS);
+	}
+}
+
+/*void data_rx(void* pvParameters)
+{
+
+	while(1) {
+
+	}
+}*/
+
+void app_main(void)
+{
+	nvs_flash_init();
+	//xTaskCreate(&data_rx, "data_rx", 2048, NULL, 5, NULL);
+	xTaskCreate(&wifi_init, "wifi_init", 2048, NULL, 5, NULL);
+}
