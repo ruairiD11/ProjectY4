@@ -147,6 +147,22 @@ on wireless communication.
 -------------------------------------------------------------------------------------------
 Week 12
 27/01/20 (Hours spent: ~4)
-I spent today setting up the accelerometer and studying the esp-idf api reference for the I2c driver on the ESP32, to get a good understanding
-of the api functions and variables used to read and write to/from the MPU6050's accelerometer. 
-The next thing to do is to setup another ESP32, and have it receive the data read from the sensors with my original ESP32, using wifi.
+	I spent today setting up the accelerometer and studying the esp-idf api reference for the I2c driver on the ESP32, to get a good understanding
+	of the api functions and variables used to read and write to/from the MPU6050's accelerometer. 
+	The next thing to do is to setup another ESP32, and have it receive the data read from the sensors with my original ESP32, using wifi.
+
+28/01/20 (Hours spent: <1)
+	Solution to issue 1 from 20/01/20: I needed to increase the attenuation value for the ADC channel reading the flex sensors. This allowed me to
+	see a change in output, when the flex sensor is bent in the correct direction.
+	
+	Solution to issue 2 from 20/01/20: I was only including the header files that I thought were required. Instead I need to include all header files
+	from the components folder of the esp-idf. For some reason they the include folders aren't included when I make a new ESP-IDF project, so have to 
+	add them myself, but it only takes a minute.
+
+29/01/20 (Hours spent: ~4)
+Task: 	To setup one ESP32 module as an access point (this will be the module for the robot arm), and then setup my other ESP32 (glove module) 
+	as a station, and have it send the data read from the sensors to the access point. I'll be following the ESP-IDF reference and a book on the
+	ESP32 written by Neil Kolban.
+
+	Managed to setup the ESP32 as an access point. I can see it when I search for networks on my phone, but I wasn't able to connect to it. It 
+	seems as though it couldn't obtain the ESP32's IP address.
