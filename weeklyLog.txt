@@ -166,3 +166,16 @@ Task: 	To setup one ESP32 module as an access point (this will be the module for
 
 	Managed to setup the ESP32 as an access point. I can see it when I search for networks on my phone, but I wasn't able to connect to it. It 
 	seems as though it couldn't obtain the ESP32's IP address.
+-------------------------------------------------------------------------------------------
+Week 13
+03/02/20 (Hours spent: ~6)
+	The first two week sprint was about migrating everything done from 1st semester over to the ESP32 with the eclipse environment, and I managed
+	to do so. The next two weeks are about achieving efficient wireless communication between the robot and glove. Looking at using ESP-NOW which
+	is a wireless communication protocol designed by Espressif, mainly used for peer to peer communication. I have set up the robot as an access 
+	point and was able to have the glove module connect to the access point as a station. I haven't been able to have them send data to each
+	other yet.
+	My thinking at the moment is that the 2 week sprint after this, will be for improving the performance of the project. i.e power management (may 
+	look at low power modes, task management (freeing up stack space when a task isnt required anymore), making sure I'm allocating the right amount 
+	of space on the stack for each task, making sure the priorites of my tasks are correct etc. 
+	The final sprint (leading up to week 8) should hopefully be the assembly of the robot and soldering all my electronics to a perf-board.
+	Hopefully I'll have the majority of this done, and can then focus on the deliverables (report, video and poster)
