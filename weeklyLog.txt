@@ -184,3 +184,8 @@ Week 13
 	Worked all day trying to send data using ESP-NOW but haven't managed it yet. There are plenty of resources and examples online to demonstrate
 	ESP-NOW but they are pretty much all with the Arduino IDE. I've been trying to sort of translate these examples to be able to use in Eclipse
 	but no luck yet.
+
+06/02/20 (Hours spent: ~2)
+	Managed to get ESP-NOW working. I just needed to set both glove and robot modules as stations, rather than an access point and a station. I'm 
+	still not receiving the correct data on the robot's side, it is just receiving zeros for the accelerometer readings from the glove. Also, the
+	sending of data eventually fails. I think this is because I may need to allocate more space in the memory allocation for wifi **not sure yet.
