@@ -9,12 +9,15 @@
 #include "esp_system.h"
 #include "esp_event.h"
 #include <esp_log.h>
+#include <string.h>
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "driver/adc.h"
 #include "driver/ledc.h"
 #include <driver/i2c.h>
 #include "sdkconfig.h"
+#include "esp_netif.h"
+#include "esp_now.h"
 
 #define PIN_SDA 21
 #define PIN_CLK 22
@@ -23,8 +26,96 @@
 #define MPU6050_ACCEL_XOUT_H 0x3B
 #define MPU6050_PWR_MGMT_1   0x6B
 
+// The identity of the access point to which we wish to connect
+#define AP_TARGET_SSID	"robot_module"
 
-void read_flex(void* pvParameters)
+// The password we need to supply to the access point for authorization
+#define AP_TARGET_PASSWORD	"12345678"
+
+uint8_t robotModuleAddress[] = { 0xb4, 0xe6, 0x2d, 0xe3, 0xd2, 0x6d };
+//uint8_t robotModuleAddress[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
+short accel_x;
+short accel_y;
+short accel_z;
+
+typedef struct struct_message {
+	short accel_x;
+	short accel_y;
+	short accel_z;
+} struct_message;
+
+struct_message accelReadings;
+
+void on_data_sent(const uint8_t* mac_addr, esp_now_send_status_t status)
+{
+	for(;;)
+	{
+		printf("Last Packet Send Status: ");
+		if (status == ESP_NOW_SEND_SUCCESS) {
+			printf("Delivery Success\n");
+		}
+		else if (status == ESP_NOW_SEND_FAIL) {
+			printf("Delivery Fail\n");
+		}
+		vTaskDelay(500/portTICK_PERIOD_MS);
+	}
+	vTaskDelete(NULL);
+}
+
+void wifi_init(void* pvParameters)
+{
+	//ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+	ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+	/*wifi_config_t sta_config = {
+			.sta = {
+					.ssid = AP_TARGET_SSID,
+					.password = AP_TARGET_PASSWORD,
+					.bssid_set = 0
+			}
+	};*/
+	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &cfg));
+	ESP_ERROR_CHECK(esp_wifi_start());
+	ESP_ERROR_CHECK(esp_wifi_connect());
+
+	ESP_ERROR_CHECK(esp_now_init());
+	esp_now_peer_info_t peerInfo;
+	memcpy(peerInfo.peer_addr, robotModuleAddress, 6);
+	peerInfo.ifidx = WIFI_IF_STA;
+	peerInfo.channel = 0;
+	peerInfo.encrypt = false;
+	if(esp_now_add_peer(&peerInfo) != ESP_OK) {
+		printf("Failed to add peer\n");
+	}
+	else {
+		printf("Successfully added peer\n");
+	}
+
+	esp_now_register_send_cb(on_data_sent);
+
+	while(1) {
+		accelReadings.accel_x = accel_x;
+		accelReadings.accel_y = accel_y;
+		accelReadings.accel_z = accel_z;
+
+		printf("accel_x: %d, accel_y: %d, accel_z: %d\n", accelReadings.accel_x, accelReadings.accel_y, accelReadings.accel_z);
+
+		esp_err_t result = esp_now_send(robotModuleAddress, (uint8_t*)&accelReadings, sizeof(accelReadings));
+		if (result == ESP_OK) {
+			printf("Sent with success\n");
+		}
+		else {
+			printf("Error sending the data\n");
+		}
+		vTaskDelay(500/portTICK_PERIOD_MS);
+	}
+	vTaskDelete(NULL);
+}
+
+/*void read_flex(void* pvParameters)
 {
 	adc1_config_width(ADC_WIDTH_12Bit);
 	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db); //GPIO 36 - THIRD
@@ -42,13 +133,13 @@ void read_flex(void* pvParameters)
 
 		printf("Avg: %d\n", avg);
 		//printf("Index: %d   Middle: %d   Third: %d\n", index, middle, third);
-
 		vTaskDelay(500/portTICK_PERIOD_MS);
 	}
 	vTaskDelete(NULL);
-}
+}*/
 
 void read_accelerometer(void* pvParameters)
+
 {
 	i2c_config_t conf;
 	conf.mode = I2C_MODE_MASTER;
@@ -82,8 +173,6 @@ void read_accelerometer(void* pvParameters)
 
 	uint8_t data[14];
 
-	short accel_x, accel_y, accel_z;
-
 	while(1) {
 		// Tell the MPU6050 to position the internal register pointer to register
 		// MPU6050_ACCEL_XOUT_H.
@@ -113,15 +202,17 @@ void read_accelerometer(void* pvParameters)
 		accel_x = (data[0] << 8) | data[1];
 		accel_y = (data[2] << 8) | data[3];
 		accel_z = (data[4] << 8) | data[5];
-		printf("accel_x: %d, accel_y: %d, accel_z: %d\n", accel_x, accel_y, accel_z);
+		//printf("accel_x: %d, accel_y: %d, accel_z: %d\n", accel_x, accel_y, accel_z);
 
 		vTaskDelay(500/portTICK_PERIOD_MS);
 	}
 	vTaskDelete(NULL);
 }
+
 void app_main(void)
 {
-	xTaskCreate(&read_flex, "read_flex", 2048, NULL, 5, NULL);
+	nvs_flash_init();
+	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 6, NULL);
+	//xTaskCreate(&read_flex, "read_flex", 2048, NULL, 5, NULL);
 	xTaskCreate(&read_accelerometer, "read_accelerometer", 2048, NULL, 5, NULL);
 }
-

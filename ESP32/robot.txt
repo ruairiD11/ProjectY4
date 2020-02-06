@@ -8,42 +8,77 @@
 #include "esp_wifi.h"
 #include "esp_system.h"
 #include "esp_event.h"
+#include <esp_log.h>
+#include <string.h>
 #include "nvs_flash.h"
 #include "driver/gpio.h"
+#include "driver/adc.h"
+#include "driver/ledc.h"
+#include <driver/i2c.h>
 #include "sdkconfig.h"
+#include "esp_netif.h"
+#include "esp_now.h"
 
-//const char* SSID = "robot_module";
-//const char* PASSWORD = "123";
+uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
+
+short incomingX;
+short incomingY;
+short incomingZ;
+
+typedef struct struct_message {
+	short accel_x;
+	short accel_y;
+	short accel_z;
+} struct_message;
+
+struct_message incomingAccelReadings;
+
+void on_data_receive(const uint8_t* mac_addr, const uint8_t* data, int len)
+{
+	printf("***Connected to Glove Module***\n");
+	for(;;)
+	{
+		printf("Data:   %d\n", *data);
+		/*memcpy(&incomingAccelReadings, data, sizeof(incomingAccelReadings));
+		printf("Bytes received: %d\n", len);
+		incomingX = incomingAccelReadings.accel_x;
+		incomingY = incomingAccelReadings.accel_y;
+		incomingZ = incomingAccelReadings.accel_z;
+
+		printf("accelX: %d, accelY: %d, accelZ: %d\n", incomingX, incomingY, incomingZ);*/
+
+		vTaskDelay(500/portTICK_PERIOD_MS);
+	}
+	vTaskDelete(NULL);
+}
 
 void wifi_init(void* pvParameters)
 {
-	printf("Setting up AP\n");
-	//Initializing the wifi environment and setting up as AP
-	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
-	esp_wifi_init(&config);
-	wifi_mode_t wifi_mode = WIFI_MODE_AP;
-	esp_wifi_set_mode(wifi_mode);
+	//ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+	ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &cfg));
+	ESP_ERROR_CHECK(esp_wifi_start());
+	ESP_ERROR_CHECK(esp_wifi_connect());
 
-	wifi_config_t apConfig = {
-			.ap = {
-					.ssid = "robot_module",
-					.ssid_len = 0,
-					.password = "123",
-					.channel = 0,
-					.authmode = WIFI_AUTH_OPEN,
-					.ssid_hidden = 0,
-					.max_connection = 4,
-					.beacon_interval = 100
-			}
-	};
-
-	esp_wifi_set_config(WIFI_IF_AP, &apConfig);
-	esp_wifi_start();
-
-	printf("AP started\n");
+	ESP_ERROR_CHECK(esp_now_init());
+	esp_now_peer_info_t peerInfo;
+	memcpy(peerInfo.peer_addr, gloveModuleAddress, 6);
+	peerInfo.ifidx = WIFI_IF_STA;
+	peerInfo.channel = 0;
+	peerInfo.encrypt = false;
+	if(esp_now_add_peer(&peerInfo) != ESP_OK) {
+		printf("Failed to add peer\n");
+	}
+	else {
+		printf("Successfully added peer\n");
+	}
 
 	while(1) {
-		printf("Running\n");
+		esp_now_register_recv_cb(on_data_receive);
+		//printf("Running\n");
 		/*if(SYSTEM_EVENT_AP_STACONNECTED == true) {
 			printf("Station connected\n");
 		}
@@ -52,19 +87,11 @@ void wifi_init(void* pvParameters)
 		}*/
 		vTaskDelay(500/portTICK_PERIOD_MS);
 	}
+	vTaskDelete(NULL);
 }
-
-/*void data_rx(void* pvParameters)
-{
-
-	while(1) {
-
-	}
-}*/
 
 void app_main(void)
 {
 	nvs_flash_init();
-	//xTaskCreate(&data_rx, "data_rx", 2048, NULL, 5, NULL);
-	xTaskCreate(&wifi_init, "wifi_init", 2048, NULL, 5, NULL);
+	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 6, NULL);
 }
