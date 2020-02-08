@@ -189,3 +189,7 @@ Week 13
 	Managed to get ESP-NOW working. I just needed to set both glove and robot modules as stations, rather than an access point and a station. I'm 
 	still not receiving the correct data on the robot's side, it is just receiving zeros for the accelerometer readings from the glove. Also, the
 	sending of data eventually fails. I think this is because I may need to allocate more space in the memory allocation for wifi **not sure yet.
+
+08/02/20 (Hours spent: ~4)
+	Still receiving 0 for the x, y and z values of the accelerometer on the robot's side. Just the initial values of x, y and z are being sent
+	continuously for some reason. Still unresolved.
