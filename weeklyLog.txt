@@ -193,3 +193,13 @@ Week 13
 08/02/20 (Hours spent: ~4)
 	Still receiving 0 for the x, y and z values of the accelerometer on the robot's side. Just the initial values of x, y and z are being sent
 	continuously for some reason. Still unresolved.
+-------------------------------------------------------------------------------------------
+11/02/20 (Hours spent: ~4)
+	I have two main problems at the moment:
+	1. The esp_now_send API function just seems to be sending the data or readings at the time that function is called, and just continously
+	sends the same data. (not updating) I must be doing something fundamentaly wrong in the way I have my code running to allow this? But can't 
+	figure it out.
+	2. Another problem which has arisen today is that this esp_now_send function only accepts 8 bit data, and most of the data I am reading needs
+	to be stored in a 16 bit variable (in order to be the correct reading). Otherwise I am just losing data. Looking at ways around this...
+	
+	May need to consider looking at another way to implement the wi-fi communication, if I am limited to 8 bit data transfer.
