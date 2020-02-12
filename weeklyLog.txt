@@ -203,3 +203,10 @@ Week 13
 	to be stored in a 16 bit variable (in order to be the correct reading). Otherwise I am just losing data. Looking at ways around this...
 	
 	May need to consider looking at another way to implement the wi-fi communication, if I am limited to 8 bit data transfer.
+
+12/02/20 (Hours spent: 1)
+	Solution to problem 2 from 11/02/20:
+	I had to change the esp-now send function, and the receive call back function, so that they send and receive 16 bit signed integers. Now I am 
+	getting the correct data on the receiver side. Not sure how safe it is to change the API function's parameters but it works for now.
+
+	Problem 1 from 11/02/20 still unresolved.
