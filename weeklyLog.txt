@@ -122,7 +122,6 @@ code to do this rather than use the example code for the MPU6050, as I feel it g
 the lower level. Have also tidied my code up into seperate functions, rather than one long loop function.
 -------------------------------------------------------------------------------------------
 Week 11
-
 20/01/20 (Hours spent: ~6)
 The plan for the next week or two is to have all the functionality I had from first semester working with the ESP32. Then I can focus 
 on wifi communication.
@@ -135,11 +134,11 @@ Reflection:
 
 Issues:
 	Hardware
-		1. Noticed when trying to read flex sensor with ESP32 that the sensor needed to be bent in the opposite direction to which 
-		 it would normally need to be in order to see a change in output, which was odd. Still unresolved
+		1. Noticed when trying to read flex sensor with ESP32 that the sensor needed to be bent in the opposite direction to 
+		which it would normally need to be in order to see a change in output, which was odd. Still unresolved
 	Software
-		2. Small issue. I get 'errors' saying some API variables 'cannot be resolved' even though I've included the required header 
-		 files and code still builds and flashes to the ESP32 fine. Will need to be resolved eventually as it doesn't look good
+		2. Small issue. I get 'errors' saying some API variables 'cannot be resolved' even though I've included the required 
+		header files and code still builds and flashes to the ESP32 fine. Will need to be resolved eventually as it doesn't look good
 
 26/01/20 (Hours spent: ~5)
 Almost have full functionality from last semester now working with ESP32. All thats left to do is implement accelerometer, and can then work
@@ -147,66 +146,70 @@ on wireless communication.
 -------------------------------------------------------------------------------------------
 Week 12
 27/01/20 (Hours spent: ~4)
-	I spent today setting up the accelerometer and studying the esp-idf api reference for the I2c driver on the ESP32, to get a good understanding
-	of the api functions and variables used to read and write to/from the MPU6050's accelerometer. 
-	The next thing to do is to setup another ESP32, and have it receive the data read from the sensors with my original ESP32, using wifi.
+	I spent today setting up the accelerometer and studying the esp-idf api reference for the I2c driver on the ESP32, to get a good 
+	understanding of the api functions and variables used to read and write to/from the MPU6050's accelerometer. The next thing to do 
+	is to setup another ESP32, and have it receive the data read from the sensors with my original ESP32, using wifi.
 
 28/01/20 (Hours spent: <1)
-	Solution to issue 1 from 20/01/20: I needed to increase the attenuation value for the ADC channel reading the flex sensors. This allowed me to
-	see a change in output, when the flex sensor is bent in the correct direction.
+	Solution to issue 1 from 20/01/20: I needed to increase the attenuation value for the ADC channel reading the flex sensors. This 
+	allowed me to see a change in output, when the flex sensor is bent in the correct direction.
 	
-	Solution to issue 2 from 20/01/20: I was only including the header files that I thought were required. Instead I need to include all header files
-	from the components folder of the esp-idf. For some reason they the include folders aren't included when I make a new ESP-IDF project, so have to 
-	add them myself, but it only takes a minute.
+	Solution to issue 2 from 20/01/20: I was only including the header files that I thought were required. Instead I need to include 
+	all header files from the components folder of the esp-idf. For some reason they the include folders aren't included when I make a 
+	new ESP-IDF project, so have to add them myself, but it only takes a minute.
 
 29/01/20 (Hours spent: ~4)
-Task: 	To setup one ESP32 module as an access point (this will be the module for the robot arm), and then setup my other ESP32 (glove module) 
-	as a station, and have it send the data read from the sensors to the access point. I'll be following the ESP-IDF reference and a book on the
-	ESP32 written by Neil Kolban.
+Task: 	To setup one ESP32 module as an access point (this will be the module for the robot arm), and then setup my other ESP32 (glove 
+	module) as a station, and have it send the data read from the sensors to the access point. I'll be following the ESP-IDF reference 
+	and a book on the ESP32 written by Neil Kolban.
 
-	Managed to setup the ESP32 as an access point. I can see it when I search for networks on my phone, but I wasn't able to connect to it. It 
-	seems as though it couldn't obtain the ESP32's IP address.
+	Managed to setup the ESP32 as an access point. I can see it when I search for networks on my phone, but I wasn't able to connect to 
+	it. It seems as though it couldn't obtain the ESP32's IP address.
 -------------------------------------------------------------------------------------------
 Week 13
 03/02/20 (Hours spent: ~6)
-	The first two week sprint was about migrating everything done from 1st semester over to the ESP32 with the eclipse environment, and I managed
-	to do so. The next two weeks are about achieving efficient wireless communication between the robot and glove. Looking at using ESP-NOW which
-	is a wireless communication protocol designed by Espressif, mainly used for peer to peer communication. I have set up the robot as an access 
-	point and was able to have the glove module connect to the access point as a station. I haven't been able to have them send data to each
-	other yet.
-	My thinking at the moment is that the 2 week sprint after this, will be for improving the performance of the project. i.e power management (may 
-	look at low power modes, task management (freeing up stack space when a task isnt required anymore), making sure I'm allocating the right amount 
-	of space on the stack for each task, making sure the priorites of my tasks are correct, *** INTERRUPTS *** etc. 
+	The first two week sprint was about migrating everything done from 1st semester over to the ESP32 with the eclipse environment, and 
+	I managed to do so. The next two weeks are about achieving efficient wireless communication between the robot and glove. Looking at 
+	using ESP-NOW which is a wireless communication protocol designed by Espressif, mainly used for peer to peer communication. I have 
+	set up the robot as an access point and was able to have the glove module connect to the access point as a station. I haven't been 
+	able to have them send data to each other yet.
+	My thinking at the moment is that the 2 week sprint after this, will be for improving the performance of the project. i.e power 
+	management (may look at low power modes, task management (freeing up stack space when a task isnt required anymore), making sure I'm 
+	allocating the right amount of space on the stack for each task, making sure the priorites of my tasks are correct, *** INTERRUPTS *** etc. 
 	The final sprint (leading up to week 8) should hopefully be the assembly of the robot and soldering all my electronics to a perf-board.
 	Hopefully I'll have the majority of this done, and can then focus on the deliverables (report, video and poster)
 
 04/02/20 (Hours spent: ~7)
-	Worked all day trying to send data using ESP-NOW but haven't managed it yet. There are plenty of resources and examples online to demonstrate
-	ESP-NOW but they are pretty much all with the Arduino IDE. I've been trying to sort of translate these examples to be able to use in Eclipse
-	but no luck yet.
+	Worked all day trying to send data using ESP-NOW but haven't managed it yet. There are plenty of resources and examples online to 
+	demonstrate ESP-NOW but they are pretty much all with the Arduino IDE. I've been trying to sort of translate these examples to be 
+	able to use in Eclipse but no luck yet.
 
 06/02/20 (Hours spent: ~2)
-	Managed to get ESP-NOW working. I just needed to set both glove and robot modules as stations, rather than an access point and a station. I'm 
-	still not receiving the correct data on the robot's side, it is just receiving zeros for the accelerometer readings from the glove. Also, the
-	sending of data eventually fails. I think this is because I may need to allocate more space in the memory allocation for wifi **not sure yet.
+	Managed to get ESP-NOW working. I just needed to set both glove and robot modules as stations, rather than an access point and a 
+	station. I'm still not receiving the correct data on the robot's side, it is just receiving zeros for the accelerometer readings 
+	from the glove. Also, the sending of data eventually fails. I think this is because I may need to allocate more space in the memory
+	allocation for wifi **not sure yet.
 
 08/02/20 (Hours spent: ~4)
-	Still receiving 0 for the x, y and z values of the accelerometer on the robot's side. Just the initial values of x, y and z are being sent
-	continuously for some reason. Still unresolved.
+	Still receiving 0 for the x, y and z values of the accelerometer on the robot's side. Just the initial values of x, y and z are 
+	being sent continuously for some reason. Still unresolved.
 -------------------------------------------------------------------------------------------
+Week 14
 11/02/20 (Hours spent: ~4)
 	I have two main problems at the moment:
-	1. The esp_now_send API function just seems to be sending the data or readings at the time that function is called, and just continously
-	sends the same data. (not updating) I must be doing something fundamentaly wrong in the way I have my code running to allow this? But can't 
-	figure it out.
-	2. Another problem which has arisen today is that this esp_now_send function only accepts 8 bit data, and most of the data I am reading needs
-	to be stored in a 16 bit variable (in order to be the correct reading). Otherwise I am just losing data. Looking at ways around this...
+	1. The esp_now_send API function just seems to be sending the data or readings at the time that function is called, and just 
+	continously sends the same data. (not updating) I must be doing something fundamentaly wrong in the way I have my code running 
+	to allow this? But can't figure it out.
+	2. Another problem which has arisen today is that this esp_now_send function only accepts 8 bit data, and most of the data I am 
+	reading needs to be stored in a 16 bit variable (in order to be the correct reading). Otherwise I am just losing data. Looking at 
+	ways around this...
 	
 	May need to consider looking at another way to implement the wi-fi communication, if I am limited to 8 bit data transfer.
 
 12/02/20 (Hours spent: 1)
 	Solution to problem 2 from 11/02/20:
-	I had to change the esp-now send function, and the receive call back function, so that they send and receive 16 bit signed integers. Now I am 
-	getting the correct data on the receiver side. Not sure how safe it is to change the API function's parameters but it works for now.
+	I had to change the esp-now send function, and the receive call back function, so that they send and receive 16 bit signed integers. 
+	Now I am getting the correct data on the receiver side. Not sure how safe it is to change the API function's parameters but it works 
+	for now.
 
 	Problem 1 from 11/02/20 still unresolved.
