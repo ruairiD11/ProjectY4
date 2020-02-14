@@ -213,3 +213,10 @@ Week 14
 	for now.
 
 	Problem 1 from 11/02/20 still unresolved.
+
+14/02/20 (Hours spent: ~4)
+	Solution to problem 1 from 11/02/20:
+	In my receiving callback function, I was using a for loop (following the typical format of a FreeRTOS task which always has an infinite
+	loop). This meant that when the I receive data on the receiver side, the receive call back function is called, it enters this for loop
+	and doesn't leave. That explains why I was getting the initial values over and over again. All I needed to do was get rid of for loop.
+	Now ESP-NOW peer to peer communication is up and running.
