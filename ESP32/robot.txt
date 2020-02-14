@@ -27,20 +27,16 @@ int16_t incomingZ;
 
 int16_t dataRx[6];
 
-void on_data_receive(const uint8_t* mac_addr, const int16_t* data, int len)
+void on_data_receive(const uint8_t* mac_addr, int16_t* data, int len)
 {
 	printf("***Connected to Glove Module***\n");
-	for(;;)
-	{
-		memcpy(&dataRx, data, sizeof(dataRx));
-		printf("Bytes received: %d\n", len);
-		incomingX = dataRx[0] | dataRx[1];
-		incomingY = dataRx[2] | dataRx[3];
-		incomingZ = dataRx[4] | dataRx[5];
-		printf("accelX: %d, accelY: %d, accelZ: %d\n", incomingX, incomingY, incomingZ);
-		vTaskDelay(pdMS_TO_TICKS(1000));
-	}
-	vTaskDelete(NULL);
+	memcpy(&dataRx, data, sizeof(dataRx));
+	printf("\n");
+	printf("Bytes received: %d\n", len);
+	incomingX = dataRx[0] | dataRx[1];
+	incomingY = dataRx[2] | dataRx[3];
+	incomingZ = dataRx[4] | dataRx[5];
+	printf("accelX: %d, accelY: %d, accelZ: %d\n", incomingX, incomingY, incomingZ);
 }
 
 void wifi_init(void* pvParameters)
@@ -57,31 +53,17 @@ void wifi_init(void* pvParameters)
 	peerInfo.ifidx = WIFI_IF_STA;
 	peerInfo.channel = 0;
 	peerInfo.encrypt = false;
-	if(esp_now_add_peer(&peerInfo) != ESP_OK) {
+	if(esp_now_add_peer(&peerInfo) != ESP_OK)
 		printf("Failed to add peer\n");
-	}
-	else {
+	else
 		printf("Successfully added peer\n");
-	}
 
 	esp_now_register_recv_cb(on_data_receive);
-
-	for(;;) {
-
-		//printf("Running\n");
-		/*if(SYSTEM_EVENT_AP_STACONNECTED == true) {
-			printf("Station connected\n");
-		}
-		else if(SYSTEM_EVENT_AP_STADISCONNECTED == true) {
-			printf("Station disconnected\n");
-		}*/
-		vTaskDelay(pdMS_TO_TICKS(1000));
-	}
 	vTaskDelete(NULL);
 }
 
 void app_main(void)
 {
 	nvs_flash_init();
-	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 6, NULL);
+	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 5, NULL);
 }
