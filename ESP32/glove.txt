@@ -18,6 +18,7 @@
 #include "sdkconfig.h"
 #include "esp_netif.h"
 #include "esp_now.h"
+#include "freertos/queue.h"
 
 #define PIN_SDA 21
 #define PIN_CLK 22
@@ -26,9 +27,9 @@
 #define MPU6050_ACCEL_XOUT_H 0x3B
 #define MPU6050_PWR_MGMT_1   0x6B
 
-uint8_t robotModuleAddress[] = { 0xb4, 0xe6, 0x2d, 0xe3, 0xd2, 0x6d };
+QueueHandle_t dataQueue, flexQueue = NULL;
 
-int16_t dataTx[6];
+uint8_t robotModuleAddress[] = { 0xb4, 0xe6, 0x2d, 0xe3, 0xd2, 0x6d };
 
 void on_data_sent(const uint8_t* mac_addr, esp_now_send_status_t status)
 {
@@ -41,7 +42,7 @@ void on_data_sent(const uint8_t* mac_addr, esp_now_send_status_t status)
 	}
 }
 
-void wifi_init(void* pvParameters)
+void wifi_init()
 {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -61,12 +62,21 @@ void wifi_init(void* pvParameters)
 		printf("Failed to add peer\n");
 	else
 		printf("Successfully added peer\n");
+}
+
+void data_Tx(void* pvParameters)
+{
+	printf("data_Tx started\n");
+	int16_t dataTx[4];
+	dataQueue = xQueueCreate(4, sizeof(dataTx));
 
 	for(;;) {
-		printf("%d %d %d %d %d %d \n", dataTx[0], dataTx[1], dataTx[2], dataTx[3], dataTx[4], dataTx[5]);
-		ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
-
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		//Block waiting for sensor readings
+		if(xQueueReceive(dataQueue, &dataTx, portMAX_DELAY)) {
+			printf("x: %d, y: %d, z: %d, flexAvg: %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
+			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
+		}
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 	vTaskDelete(NULL);
 }
@@ -103,9 +113,12 @@ void read_accelerometer(void* pvParameters)
 	i2c_cmd_link_delete(cmd);
 
 	uint8_t data[14];
+	int16_t dataTx[4];
+	int16_t flex_avg;
+
+	flexQueue = xQueueCreate(1, sizeof(flex_avg));
 
 	for(;;) {
-		printf("read_accelerometer\n");
 		// Tell the MPU6050 to position the internal register pointer to register
 		// MPU6050_ACCEL_XOUT_H.
 		cmd = i2c_cmd_link_create();
@@ -131,47 +144,48 @@ void read_accelerometer(void* pvParameters)
 		i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS);
 		i2c_cmd_link_delete(cmd);
 
-		//2 Bytes each - 12 Bytes
-		dataTx[0] = (data[0] << 8);
-		dataTx[1] = data[1];
-		dataTx[2] = (data[2] << 8);
-		dataTx[3] = data[3];
-		dataTx[4] = (data[4] << 8);
-		dataTx[5] = data[5];
+		//Wait for flex average value from flex task
+		if(xQueueReceive(flexQueue, &flex_avg, portMAX_DELAY)) {
+			dataTx[0] = (data[0] << 8) | data[1];
+			dataTx[1] = (data[2] << 8) | data[3];
+			dataTx[2] = (data[4] << 8) | data[5];
+			dataTx[3] = flex_avg;
+			xQueueSend(dataQueue, &dataTx, 0);
+		}
 
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 	vTaskDelete(NULL);
 }
 
-/*void read_flex(void* pvParameters)
+void read_flex(void* pvParameters)
 {
+	int16_t index, middle, third, sum, avg;
+
 	adc1_config_width(ADC_WIDTH_12Bit);
 	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db); //GPIO 36 - THIRD
 	adc1_config_channel_atten(ADC1_CHANNEL_3, ADC_ATTEN_11db); //GPIO 39 - MIDDLE
 	adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db); //GPIO 34 - INDEX
 
 	for(;;) {
-		int index = adc1_get_raw(ADC1_CHANNEL_6);
-		int middle = adc1_get_raw(ADC1_CHANNEL_3);
-		int third = adc1_get_raw(ADC1_CHANNEL_0);
-		if(middle == 4095)
-			middle = 2100;
-		int sum = index+middle+third;
-		//avg = sum/3;
+		index = adc1_get_raw(ADC1_CHANNEL_6);
+		middle = adc1_get_raw(ADC1_CHANNEL_3);
+		third = adc1_get_raw(ADC1_CHANNEL_0);
+		sum = index+middle+third;
+		avg = sum/3;
 
+		xQueueSend(flexQueue, &avg, 0);
 
-		//printf("Index: %d   Middle: %d   Third: %d\n", index, middle, third);
-		printf("read_flex\n");
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 	vTaskDelete(NULL);
-}*/
+}
 
 void app_main(void)
 {
 	nvs_flash_init();
-	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 6, NULL);
+	wifi_init();
+	xTaskCreate(&data_Tx, "data_Tx", 2048, NULL, 6, NULL);
 	xTaskCreate(&read_accelerometer, "read_accelerometer", 2048, NULL, 5, NULL);
-	//xTaskCreate(&read_flex, "read_flex", 2048, NULL, 6, NULL);
+	xTaskCreate(&read_flex, "read_flex", 2048, NULL, 4, NULL);
 }

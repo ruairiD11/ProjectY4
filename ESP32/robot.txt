@@ -14,32 +14,77 @@
 #include "driver/gpio.h"
 #include "driver/adc.h"
 #include "driver/ledc.h"
-#include <driver/i2c.h>
+#include "driver/i2c.h"
 #include "sdkconfig.h"
 #include "esp_netif.h"
 #include "esp_now.h"
+#include "freertos/queue.h"
 
 uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
 
-int16_t incomingX;
-int16_t incomingY;
-int16_t incomingZ;
-
-int16_t dataRx[6];
+QueueHandle_t dataQueue = NULL;
 
 void on_data_receive(const uint8_t* mac_addr, int16_t* data, int len)
 {
-	printf("***Connected to Glove Module***\n");
+	int16_t dataRx[4];
 	memcpy(&dataRx, data, sizeof(dataRx));
-	printf("\n");
-	printf("Bytes received: %d\n", len);
-	incomingX = dataRx[0] | dataRx[1];
-	incomingY = dataRx[2] | dataRx[3];
-	incomingZ = dataRx[4] | dataRx[5];
-	printf("accelX: %d, accelY: %d, accelZ: %d\n", incomingX, incomingY, incomingZ);
+	printf("Bytes received from Glove module: %d\n", len);
+	xQueueSend(dataQueue, &dataRx, 0);
 }
 
-void wifi_init(void* pvParameters)
+void servo_write(void* pvParameters)
+{
+	int16_t dataRx[4];
+	int16_t incomingX, incomingY, incomingZ, incomingFlex;
+
+	int bitSize = 15;
+	int minValue = 500;  // micro seconds (uS)
+	int maxValue = 2500;  // micro seconds (uS)
+	int sweepDuration = 1500;  // ms
+	int duty = (1<<bitSize) * minValue / 20000;
+	int direction = 1; // 1=up, -1=down
+	int valueChangeRate = 20; // ms
+
+	ledc_timer_config_t timer_conf;
+	timer_conf.bit_num = LEDC_TIMER_15_BIT;
+	timer_conf.freq_hz = 50;
+	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	timer_conf.timer_num = LEDC_TIMER_0;
+	ledc_timer_config(&timer_conf);
+
+	ledc_channel_config_t ledc_conf;
+	ledc_conf.channel = LEDC_CHANNEL_0;
+	ledc_conf.duty = duty;
+	ledc_conf.gpio_num = 16;
+	ledc_conf.intr_type = LEDC_INTR_DISABLE;
+	ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	ledc_conf.timer_sel = LEDC_TIMER_0;
+	ledc_channel_config(&ledc_conf);
+
+	int changesPerSweep = sweepDuration / valueChangeRate;
+	int changeDelta = (maxValue-minValue) / changesPerSweep;
+
+	for(;;) {
+		//Wait forever for incoming data
+		if(xQueueReceive(dataQueue, &dataRx, portMAX_DELAY)) {
+			incomingX = dataRx[0];
+			incomingY = dataRx[1];
+			incomingZ = dataRx[2];
+			incomingFlex = dataRx[3];
+
+			duty = incomingFlex;
+
+			printf("accelX: %d, accelY: %d, accelZ: %d, flexAvg: %d\n", incomingX, incomingY, incomingZ, incomingFlex);
+
+			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
+			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+		}
+		vTaskDelay(pdMS_TO_TICKS(50));
+	}
+	vTaskDelete(NULL);
+}
+
+void wifi_init()
 {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -58,12 +103,15 @@ void wifi_init(void* pvParameters)
 	else
 		printf("Successfully added peer\n");
 
+	//4 items 8 bytes each
+	dataQueue = xQueueCreate(4, 8);
+
 	esp_now_register_recv_cb(on_data_receive);
-	vTaskDelete(NULL);
 }
 
 void app_main(void)
 {
 	nvs_flash_init();
-	xTaskCreate(&wifi_init, "wifi_init", 4096, NULL, 5, NULL);
+	wifi_init();
+	xTaskCreate(&servo_write, "servo_write", 2048, NULL, 5, NULL);
 }
