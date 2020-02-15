@@ -220,3 +220,8 @@ Week 14
 	loop). This meant that when the I receive data on the receiver side, the receive call back function is called, it enters this for loop
 	and doesn't leave. That explains why I was getting the initial values over and over again. All I needed to do was get rid of for loop.
 	Now ESP-NOW peer to peer communication is up and running.
+
+15/02/20 (Hours spent: 6-7)
+	I've improved my code by adding queues to send data between tasks and also in my receiving call back function to send data to another
+	task to process the received data. Tested my code on the prototype from first semester. Latency is already apparent. Tried decreasing
+	the amount of delay for each task to try to improve it. I'll be looking to improve the overall performace over the next 2 week sprint.
