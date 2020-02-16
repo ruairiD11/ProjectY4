@@ -225,3 +225,8 @@ Week 14
 	I've improved my code by adding queues to send data between tasks and also in my receiving call back function to send data to another
 	task to process the received data. Tested my code on the prototype from first semester. Latency is already apparent. Tried decreasing
 	the amount of delay for each task to try to improve it. I'll be looking to improve the overall performace over the next 2 week sprint.
+
+16/02/20 (Hours spent: 1-2)
+	Using the prototype from first semester to test current code. Not getting the most consistent output yet. Next two weeks are for 
+	improving performance and to start planning/designing how the robot arm will look and maneuver.
+-------------------------------------------------------------------------------------------
