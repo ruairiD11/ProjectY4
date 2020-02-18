@@ -230,3 +230,5 @@ Week 14
 	Using the prototype from first semester to test current code. Not getting the most consistent output yet. Next two weeks are for 
 	improving performance and to start planning/designing how the robot arm will look and maneuver.
 -------------------------------------------------------------------------------------------
+18/02/20 (Hours spent: 5-6)
+	More work on improving output on the prototype. The accelerometer controlling the roll still doesn't work as it should.
