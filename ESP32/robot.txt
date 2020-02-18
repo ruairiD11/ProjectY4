@@ -37,32 +37,39 @@ void servo_write(void* pvParameters)
 	int16_t dataRx[4];
 	int16_t incomingX, incomingY, incomingZ, incomingFlex;
 
-	int bitSize = 15;
-	int minValue = 500;  // micro seconds (uS)
-	int maxValue = 2500;  // micro seconds (uS)
-	int sweepDuration = 1500;  // ms
-	int duty = (1<<bitSize) * minValue / 20000;
-	int direction = 1; // 1=up, -1=down
-	int valueChangeRate = 20; // ms
+	int16_t gripperValue = 0, rollValue = 0;
 
-	ledc_timer_config_t timer_conf;
-	timer_conf.bit_num = LEDC_TIMER_15_BIT;
-	timer_conf.freq_hz = 50;
-	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
-	timer_conf.timer_num = LEDC_TIMER_0;
-	ledc_timer_config(&timer_conf);
+	/*---Gripper Servo Configuration---*/
+	ledc_timer_config_t gripper_timer_conf;
+	gripper_timer_conf.bit_num = LEDC_TIMER_15_BIT;
+	gripper_timer_conf.freq_hz = 50;
+	gripper_timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	gripper_timer_conf.timer_num = LEDC_TIMER_0;
+	ledc_timer_config(&gripper_timer_conf);
+	ledc_channel_config_t gripper_ledc_conf;
+	gripper_ledc_conf.channel = LEDC_CHANNEL_0;
+	gripper_ledc_conf.duty = gripperValue;
+	gripper_ledc_conf.gpio_num = 16;
+	gripper_ledc_conf.intr_type = LEDC_INTR_DISABLE;
+	gripper_ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	gripper_ledc_conf.timer_sel = LEDC_TIMER_0;
+	ledc_channel_config(&gripper_ledc_conf);
 
-	ledc_channel_config_t ledc_conf;
-	ledc_conf.channel = LEDC_CHANNEL_0;
-	ledc_conf.duty = duty;
-	ledc_conf.gpio_num = 16;
-	ledc_conf.intr_type = LEDC_INTR_DISABLE;
-	ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
-	ledc_conf.timer_sel = LEDC_TIMER_0;
-	ledc_channel_config(&ledc_conf);
-
-	int changesPerSweep = sweepDuration / valueChangeRate;
-	int changeDelta = (maxValue-minValue) / changesPerSweep;
+	/*---Roll Servo Configuration---*/
+	ledc_timer_config_t roll_timer_conf;
+	roll_timer_conf.bit_num = LEDC_TIMER_15_BIT;
+	roll_timer_conf.freq_hz = 50;
+	roll_timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	roll_timer_conf.timer_num = LEDC_TIMER_1;
+	ledc_timer_config(&roll_timer_conf);
+	ledc_channel_config_t roll_ledc_conf;
+	roll_ledc_conf.channel = LEDC_CHANNEL_1;
+	roll_ledc_conf.duty = gripperValue;
+	roll_ledc_conf.gpio_num = 3;
+	roll_ledc_conf.intr_type = LEDC_INTR_DISABLE;
+	roll_ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+	roll_ledc_conf.timer_sel = LEDC_TIMER_1;
+	ledc_channel_config(&roll_ledc_conf);
 
 	for(;;) {
 		//Wait forever for incoming data
@@ -72,14 +79,17 @@ void servo_write(void* pvParameters)
 			incomingZ = dataRx[2];
 			incomingFlex = dataRx[3];
 
-			duty = incomingFlex;
+			gripperValue = incomingFlex;
+			rollValue = incomingY;
 
-			printf("accelX: %d, accelY: %d, accelZ: %d, flexAvg: %d\n", incomingX, incomingY, incomingZ, incomingFlex);
-
-			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
+			//printf("accelX: %d, accelY: %d, accelZ: %d, flexAvg: %d\n", incomingX, incomingY, incomingZ, incomingFlex);
+			printf("rollVal: %d\n", rollValue);
+			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, gripperValue);
+			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, rollValue);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
 		}
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(250));
 	}
 	vTaskDelete(NULL);
 }
@@ -93,11 +103,11 @@ void wifi_init()
 	ESP_ERROR_CHECK(esp_wifi_start());
 
 	ESP_ERROR_CHECK(esp_now_init());
-	esp_now_peer_info_t peerInfo;
-	memcpy(peerInfo.peer_addr, gloveModuleAddress, 6);
-	peerInfo.ifidx = WIFI_IF_STA;
-	peerInfo.channel = 0;
-	peerInfo.encrypt = false;
+	esp_now_peer_info_t peerInfo; // @suppress("Type cannot be resolved")
+	memcpy(peerInfo.peer_addr, gloveModuleAddress, 6); // @suppress("Field cannot be resolved")
+	peerInfo.ifidx = WIFI_IF_STA; // @suppress("Field cannot be resolved")
+	peerInfo.channel = 0; // @suppress("Field cannot be resolved")
+	peerInfo.encrypt = false; // @suppress("Field cannot be resolved")
 	if(esp_now_add_peer(&peerInfo) != ESP_OK)
 		printf("Failed to add peer\n");
 	else

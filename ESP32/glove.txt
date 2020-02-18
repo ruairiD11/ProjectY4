@@ -76,13 +76,19 @@ void data_Tx(void* pvParameters)
 			printf("x: %d, y: %d, z: %d, flexAvg: %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
 			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
 		}
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(300));
 	}
 	vTaskDelete(NULL);
 }
 
 void read_accelerometer(void* pvParameters)
 {
+	uint8_t data[14];
+	int16_t dataTx[4];
+	int16_t flex_avg;
+
+	flexQueue = xQueueCreate(1, sizeof(flex_avg));
+
 	i2c_config_t conf;
 	conf.mode = I2C_MODE_MASTER;
 	conf.sda_io_num = PIN_SDA;
@@ -112,11 +118,6 @@ void read_accelerometer(void* pvParameters)
 	i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
-	uint8_t data[14];
-	int16_t dataTx[4];
-	int16_t flex_avg;
-
-	flexQueue = xQueueCreate(1, sizeof(flex_avg));
 
 	for(;;) {
 		// Tell the MPU6050 to position the internal register pointer to register
@@ -145,7 +146,7 @@ void read_accelerometer(void* pvParameters)
 		i2c_cmd_link_delete(cmd);
 
 		//Wait for flex average value from flex task
-		if(xQueueReceive(flexQueue, &flex_avg, portMAX_DELAY)) {
+		if(xQueueReceive(flexQueue, &flex_avg, 0)) {
 			dataTx[0] = (data[0] << 8) | data[1];
 			dataTx[1] = (data[2] << 8) | data[3];
 			dataTx[2] = (data[4] << 8) | data[5];
@@ -153,7 +154,7 @@ void read_accelerometer(void* pvParameters)
 			xQueueSend(dataQueue, &dataTx, 0);
 		}
 
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(300));
 	}
 	vTaskDelete(NULL);
 }
@@ -169,14 +170,20 @@ void read_flex(void* pvParameters)
 
 	for(;;) {
 		index = adc1_get_raw(ADC1_CHANNEL_6);
+		if(index == 4095)
+			index = 2500;
 		middle = adc1_get_raw(ADC1_CHANNEL_3);
+		if(middle == 4095)
+			middle = 2200;
 		third = adc1_get_raw(ADC1_CHANNEL_0);
+		if(third == 4095)
+			third = 3100;
 		sum = index+middle+third;
 		avg = sum/3;
 
 		xQueueSend(flexQueue, &avg, 0);
 
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(300));
 	}
 	vTaskDelete(NULL);
 }
