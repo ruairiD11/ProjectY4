@@ -2,6 +2,12 @@
  * 		26/01/2020
  * 		Final Year Project - Remote-Robot
  * 		Glove Module
+ *
+ * 		References:
+ * 		-https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/ --> ESP-IDF API Reference
+ * 		-Kolban's Book on ESP32 - Neil Kolban, 2018
+ * 		-https://www.youtube.com/playlist?list=PLB-czhEQLJbWMOl7Ew4QW1LpoUUE7QMOo --> Neil Kolban ESP32 Technical Tutorials
+ * 		-https://www.arduino.cc/reference/en/language/functions/math/map/ --> map() function algorithm
  */
 
 #include "freertos/FreeRTOS.h"
@@ -76,7 +82,7 @@ void data_Tx(void* pvParameters)
 			printf("x: %d, y: %d, z: %d, flexAvg: %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
 			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
 		}
-		vTaskDelay(pdMS_TO_TICKS(300));
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 	vTaskDelete(NULL);
 }
@@ -154,7 +160,7 @@ void read_accelerometer(void* pvParameters)
 			xQueueSend(dataQueue, &dataTx, 0);
 		}
 
-		vTaskDelay(pdMS_TO_TICKS(300));
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 	vTaskDelete(NULL);
 }
@@ -183,7 +189,7 @@ void read_flex(void* pvParameters)
 
 		xQueueSend(flexQueue, &avg, 0);
 
-		vTaskDelay(pdMS_TO_TICKS(300));
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 	vTaskDelete(NULL);
 }

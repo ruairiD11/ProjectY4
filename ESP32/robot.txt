@@ -1,7 +1,13 @@
 /*		Ruairi Doherty
- * 		Created on 29/01/2020
+ * 		26/01/2020
  * 		Final Year Project - Remote-Robot
  * 		Robot Module
+ *
+ * 		References:
+ * 		-https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/ --> ESP-IDF API Reference
+ * 		-Kolban's Book on ESP32 - Neil Kolban, 2018
+ * 		-https://www.youtube.com/playlist?list=PLB-czhEQLJbWMOl7Ew4QW1LpoUUE7QMOo --> Neil Kolban ESP32 Technical Tutorials
+ * 		-https://www.arduino.cc/reference/en/language/functions/math/map/ --> map() function algorithm
  */
 
 #include "freertos/FreeRTOS.h"
@@ -28,8 +34,14 @@ void on_data_receive(const uint8_t* mac_addr, int16_t* data, int len)
 {
 	int16_t dataRx[4];
 	memcpy(&dataRx, data, sizeof(dataRx));
-	printf("Bytes received from Glove module: %d\n", len);
+	//printf("Bytes received from Glove module: %d\n", len);
 	xQueueSend(dataQueue, &dataRx, 0);
+}
+
+//Arduino map() function algorithim
+int16_t map(int16_t value, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
+{
+	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 void servo_write(void* pvParameters)
@@ -80,16 +92,17 @@ void servo_write(void* pvParameters)
 			incomingFlex = dataRx[3];
 
 			gripperValue = incomingFlex;
-			rollValue = incomingY;
+			rollValue = map(incomingY, -17000, 17000, 1000, 4000);
 
-			//printf("accelX: %d, accelY: %d, accelZ: %d, flexAvg: %d\n", incomingX, incomingY, incomingZ, incomingFlex);
-			printf("rollVal: %d\n", rollValue);
+			printf("accelX: %d, accelY: %d, accelZ: %d, flexAvg: %d\n", incomingX, incomingY, incomingZ, incomingFlex);
+			printf("rollVal: %d,  gripVal: %d\n", rollValue, gripperValue);
+
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, gripperValue);
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, rollValue);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
 		}
-		vTaskDelay(pdMS_TO_TICKS(250));
+		vTaskDelay(pdMS_TO_TICKS(100));
 	}
 	vTaskDelete(NULL);
 }
