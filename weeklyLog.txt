@@ -230,9 +230,15 @@ Week 14
 	Using the prototype from first semester to test current code. Not getting the most consistent output yet. Next two weeks are for 
 	improving performance and to start planning/designing how the robot arm will look and maneuver.
 -------------------------------------------------------------------------------------------
+Week 15
 18/02/20 (Hours spent: 5-6)
 	More work on improving output on the prototype. The accelerometer controlling the roll still doesn't work as it should.
 19/02/20 (Hours spent: 1)
 	Took Arduino's map() function algorithim and created a function to run this algorithim. This was required in order to scale the value 
 	read from acceleromter down to between 1000 and 4000, making it a more managable scale for the gripper servo to work in. This has 
 	massively improved the output on the gripper. Credit goes to Arduino for the algorithim.
+-------------------------------------------------------------------------------------------
+Week 16
+26/02/20 (Hours spent: 5-6)
+	Set up an external push button as an interrupt, and have it controlling a stepper motor. I hope to have this stepper motor control
+	the pitch of the robot.
