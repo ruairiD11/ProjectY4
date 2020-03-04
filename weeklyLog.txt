@@ -248,3 +248,8 @@ Week 16
 	-Using a task notification rather than a queue of size 1 to send the average value of flex sensors to the accel task, as this is much
 	quicker and uses less memory
 	-As ESP32 has two cores, I have evened out the workload by pinning certain tasks to different cores, to help performance.
+-------------------------------------------------------------------------------------------
+04/03/20
+	Next thing I'm working on is to display a livestream feed on a webpage (most likely a http server - I have example Arduino code that sets up
+	this server and shows livestream). I am going to try to have either the glove or robot module publish sensor data to a topic on an AWS broker.
+	Hopefully I can then have the ESP32 CAM subscribe to this topic, pull the data and display it on the webpage with the livestream.
