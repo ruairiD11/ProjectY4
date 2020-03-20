@@ -253,3 +253,8 @@ Week 16
 	Next thing I'm working on is to display a livestream feed on a webpage (most likely a http server - I have example Arduino code that sets up
 	this server and shows livestream). I am going to try to have either the glove or robot module publish sensor data to a topic on an AWS broker.
 	Hopefully I can then have the ESP32 CAM subscribe to this topic, pull the data and display it on the webpage with the livestream.
+-------------------------------------------------------------------------------------------
+Week 18
+20/03/20
+	Still exploring whether to encorporate AWS into the project, but it means I would need to change much of what I've already done. I think I will
+	just stick with what I have as it works. I am currently working on my webpage that displays a livestream and some sensors readings. 
