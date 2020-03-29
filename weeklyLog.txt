@@ -258,3 +258,7 @@ Week 18
 20/03/20
 	Still exploring whether to encorporate AWS into the project, but it means I would need to change much of what I've already done. I think I will
 	just stick with what I have as it works. I am currently working on my webpage that displays a livestream and some sensors readings. 
+-------------------------------------------------------------------------------------------
+Week 19
+29/03/20
+	More work on livestream server - possibility of using AWS and nodejs server... Have begun work on first drafts for the report and poster.
