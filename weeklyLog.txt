@@ -249,6 +249,7 @@ Week 16
 	quicker and uses less memory
 	-As ESP32 has two cores, I have evened out the workload by pinning certain tasks to different cores, to help performance.
 -------------------------------------------------------------------------------------------
+Week 17
 04/03/20
 	Next thing I'm working on is to display a livestream feed on a webpage (most likely a http server - I have example Arduino code that sets up
 	this server and shows livestream). I am going to try to have either the glove or robot module publish sensor data to a topic on an AWS broker.
@@ -262,3 +263,6 @@ Week 18
 Week 19
 29/03/20
 	More work on livestream server - possibility of using AWS and nodejs server... Have begun work on first drafts for the report and poster.
+02/04/19
+	Working on layout of webpage. Going to deploy the webpage up onto the cloud using an AWS EC2 instance. The lievstream functionality won't work
+	though so will need to find a solution to this.
