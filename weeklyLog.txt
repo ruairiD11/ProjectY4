@@ -269,3 +269,5 @@ Week 19
 03/04/20
 	Built on top of my prototype to include the stepper motor for pitch control functionality. All that is left to do with the prototype is mount 
 	the camera. 
+04/04/20
+	Glove and robot module are now powered by their own independent 9V battery.  
