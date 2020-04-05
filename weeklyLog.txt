@@ -271,3 +271,5 @@ Week 19
 	the camera. 
 04/04/20
 	Glove and robot module are now powered by their own independent 9V battery.  
+05/04/20
+	More work on webpage - trying to display message when robot is pitched forward or backward. Added esp32 camera and nodejs code.
