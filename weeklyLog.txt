@@ -263,6 +263,8 @@ Week 18
 Week 19
 29/03/20
 	More work on livestream server - possibility of using AWS and nodejs server... Have begun work on first drafts for the report and poster.
+-------------------------------------------------------------------------------------------
+Week 20
 02/04/20
 	Working on layout of webpage. Going to deploy the webpage up onto the cloud using an AWS EC2 instance. The lievstream functionality won't work
 	though so will need to find a solution to this.
@@ -273,3 +275,4 @@ Week 19
 	Glove and robot module are now powered by their own independent 9V battery.  
 05/04/20
 	More work on webpage - trying to display message when robot is pitched forward or backward. Added esp32 camera and nodejs code.
+-------------------------------------------------------------------------------------------
