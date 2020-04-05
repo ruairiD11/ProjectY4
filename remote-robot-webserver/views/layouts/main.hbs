@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Remote-Robot Livestream</title>
+  <style>
+  	body {
+    	font-family: Verdana, Geneva, sans-serif;
+      background-color: #000000;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      background-color: #000000;
+      padding: 10px 5px 10px 5px;
+    }
+
+    .content-div{
+      display : flex;
+      flex-direction: row;
+      color:white;
+      background-color: #000000;
+    }
+
+    .head-div{
+     display : flex;
+     font-size: 42px;
+     text-align: center;
+     color: #a11b1b;
+     flex-direction: row;
+     background-color: #000000;
+     margin: 0 auto;
+    }
+
+    .text {
+      margin: 20px;
+    }
+  </style>
+</head>
+  <body>
+   <div class = "main-container">
+   <div class = "head-div">
+     <strong>
+        Remote-Robot Livestream
+     </strong>
+    </div>
+        <p><a href="http://192.168.43.249/" target="iframe_a" style="color: #ffffff;">Display Livestream</a></p>
+        <div class = "content-div">
+        	<div class="content-div" style="width: 50%">
+        		<iframe height="400px" width="100%" src="/pages/index.html" name="iframe_a"></iframe>
+          </div>
+        	<div class="content-div" style="width: 50%;">
+           <p class="text">
+              <strong>Glove Sensor Readings</strong></br></br>
+              Accelerometer Y-Axis: <span id="accel_y"></span></br>
+              Flex Sensors Average: <span id="flex_avg"></span></br></br>
+              <a id="pitch_forward" style="color: #a11b1b;"> PITCH FORWARD </br></a>
+              <a id="pitch_backward" style="color: #a11b1b;"> PITCH BACKWARD </a>
+          </p>
+
+        	</div>
+        </div>
+
+    <script>
+
+    setInterval(function() {
+         updateAccelY();
+         updateFlexAvg();
+         getForwardPitch();
+         getBackwardPitch();
+    }, 200);
+
+    function updateAccelY() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+              document.getElementById("accel_y").innerHTML = this.responseText;
+           }
+      };
+      xhttp.open("GET", "/getAccelY", true);
+      xhttp.send();
+    }
+
+    function updateFlexAvg() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+              document.getElementById("flex_avg").innerHTML = this.responseText;
+           }
+      };
+      xhttp.open("GET", "/getFlexAvg", true);
+      xhttp.send();
+    }
+
+    function getForwardPitch() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+              if (this.responseText == "1") {
+                document.getElementById("pitch_forward").style.visibility = "visible";
+              }
+              else {
+                document.getElementById("pitch_forward").style.visibility = "hidden";
+              }
+           }
+      };
+      xhttp.open("GET", "/getForwardPitch", true);
+      xhttp.send();
+    }
+
+    function getBackwardPitch() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+              if (this.responseText == "1") {
+                document.getElementById("pitch_backward").style.visibility = "visible";
+              }
+              else {
+                document.getElementById("pitch_backward").style.visibility = "hidden";
+              }
+           }
+      };
+      xhttp.open("GET", "/getBackwardPitch", true);
+      xhttp.send();
+    }
+    </script>
+  </body>
+</html>
