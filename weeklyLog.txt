@@ -276,3 +276,9 @@ Week 20
 05/04/20
 	More work on webpage - trying to display message when robot is pitched forward or backward. Added esp32 camera and nodejs code.
 -------------------------------------------------------------------------------------------
+06/04/20
+	A big problem I've always had was an inconsistent output on the gripper servo. This is down to the poor connection to the flex sensors on the 
+	glove, and also because I'm calculating the average of three sensors, so it is going to be prone to a fluctuation in readings. I've come up 
+	with another software solution to improve this - By keeping track of the previous reading from each flex sensor plus attaining it's new value,
+	I can essentially smooth out the average some more. Now I get the average of 6 values (old and new value for each of the 3 sensors). This seems
+	to have made a decent improvement. Updated code.
