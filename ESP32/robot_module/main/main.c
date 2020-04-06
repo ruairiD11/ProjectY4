@@ -5,7 +5,7 @@
  *
  * 		References:
  * 		-https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/ --> ESP-IDF API Reference
- * 		-Kolban's Book on ESP32 - Neil Kolban, 2018
+ * 		-"Kolban's Book on ESP32" - Neil Kolban, 2018
  * 		-https://www.youtube.com/playlist?list=PLB-czhEQLJbWMOl7Ew4QW1LpoUUE7QMOo --> Neil Kolban ESP32 Technical Tutorials
  * 		-https://www.arduino.cc/reference/en/language/functions/math/map/ --> map() function algorithm
  */
@@ -37,12 +37,11 @@
 #define STEPPER_PIN_4	13
 
 uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
-uint8_t esp32CamAddress[] = { 0xC4, 0x4F, 0x33, 0x3a, 0x0C, 0x81 };
 
-uint8_t forward_step[] = { 1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, 0, 1 	};
+uint8_t forward_step[] = {  1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1 	};
 
 uint8_t backward_step[] = { 0, 0, 0, 1,
 							0, 0, 1, 0,
@@ -54,7 +53,7 @@ EventGroupHandle_t pitchEventGroup = NULL;
 
 void on_data_receive(const uint8_t* mac_addr, int16_t* data, int len)
 {
-	int16_t dataRx[5];
+	int16_t dataRx[4];
 	memcpy(&dataRx, data, sizeof(dataRx));
 	printf("Bytes received from Glove module: %d\n", len);
 	xQueueSend(dataQueue, &dataRx, 0);
@@ -108,20 +107,17 @@ void servo_write(void* pvParameters)
 			else if(dataRx[3] == 1)
 				xEventGroupSetBits(pitchEventGroup, PITCH_BACKWARD);
 
-			printf("accelY: %d, flexAvg: %d, button: %d, %d\n", rollValue, gripperValue, dataRx[2], dataRx[3]);
+			//printf("accelY: %d, flexAvg: %d, button: %d, %d\n", rollValue, gripperValue, dataRx[2], dataRx[3]);
 			//printf("grip: %d, roll %d\n", gripperValue, rollValue);
-
-			dac_output_enable(DAC_CHANNEL_1);
-			dac_output_voltage(DAC_CHANNEL_1, rollValue);
 
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, gripperValue);
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, rollValue);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
 		}
+
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
-	vTaskDelete(NULL);
 }
 
 void wifi_init()
@@ -141,14 +137,6 @@ void wifi_init()
 	if(esp_now_add_peer(&glove_peerInfo) != ESP_OK)
 		printf("Failed to add glove peer\n");
 
-	esp_now_peer_info_t cam_peerInfo;
-	memcpy(cam_peerInfo.peer_addr, esp32CamAddress, 6);
-	cam_peerInfo.ifidx = WIFI_IF_STA;
-	cam_peerInfo.channel = 0;
-	cam_peerInfo.encrypt = false;
-	if(esp_now_add_peer(&cam_peerInfo) != ESP_OK)
-		printf("Failed to add CAM peer\n");
-
 	dataQueue = xQueueCreate(4, 8);
 	pitchEventGroup = xEventGroupCreate();
 
@@ -158,7 +146,7 @@ void wifi_init()
 void stepper_write(void* pvParameters)
 {
 	EventBits_t bits;
-	int i, j;
+	uint8_t i, j;
 	gpio_pad_select_gpio(STEPPER_PIN_1);
 	gpio_set_direction(STEPPER_PIN_1, GPIO_MODE_OUTPUT);
 	gpio_pad_select_gpio(STEPPER_PIN_2);
@@ -211,6 +199,6 @@ void app_main(void)
 {
 	nvs_flash_init();
 	wifi_init();
-	xTaskCreate(&servo_write, "servo_write", 2048, NULL, 5, NULL);
+	xTaskCreatePinnedToCore(&servo_write, "servo_write", 2048, NULL, 5, NULL, 0);
 	xTaskCreatePinnedToCore(&stepper_write, "stepper_write", 2048, NULL, 4, NULL, 1);
 }

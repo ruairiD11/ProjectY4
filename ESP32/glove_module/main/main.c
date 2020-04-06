@@ -5,7 +5,7 @@
  *
  * 		References:
  * 		-https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/ --> ESP-IDF API Reference
- * 		-Kolban's Book on ESP32 - Neil Kolban, 2018
+ * 		-"Kolban's Book on ESP32" - Neil Kolban, 2018
  * 		-https://www.youtube.com/playlist?list=PLB-czhEQLJbWMOl7Ew4QW1LpoUUE7QMOo --> Neil Kolban ESP32 Technical Tutorials
  * 		-https://www.arduino.cc/reference/en/language/functions/math/map/ --> map() function algorithm
  */
@@ -44,8 +44,7 @@ TaskHandle_t flexTask, accelTask = NULL;
 uint8_t forward, backward = 0;
 
 uint8_t robotModuleAddress[] = { 0xb4, 0xe6, 0x2d, 0xe3, 0xd2, 0x6d };
-uint8_t esp32CamAddress[] = { 0xC4, 0x4F, 0x33, 0x3a, 0x0C, 0x81 };
-uint8_t esp32_mqtt[] = { 0x84, 0x0D, 0x8E, 0xE6, 0x7C, 0x44 };
+uint8_t esp32CamAddress[] = { 0xC4, 0x4F, 0x33, 0x3A, 0x0C, 0x81 };
 
 void IRAM_ATTR forward_isr_handler(void* arg)
 {
@@ -70,14 +69,13 @@ void IRAM_ATTR backward_isr_handler(void* arg)
 void on_data_sent(const uint8_t* mac_addr, esp_now_send_status_t status)
 {
 	printf("Last Packet Send Status: ");
-	if (status == ESP_NOW_SEND_SUCCESS) {
+	if (status == ESP_NOW_SEND_SUCCESS)
 		printf("Delivery Success\n");
-	}
-	else if (status == ESP_NOW_SEND_FAIL) {
+	else if (status == ESP_NOW_SEND_FAIL)
 		printf("Delivery Fail\n");
-	}
 }
 
+// Arduino map() function
 int16_t map(int16_t value, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
 {
 	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -94,39 +92,28 @@ void wifi_init()
 	ESP_ERROR_CHECK(esp_now_init());
 	esp_now_register_send_cb(on_data_sent);
 
-	esp_now_peer_info_t peerInfo;
-	memcpy(peerInfo.peer_addr, robotModuleAddress, 6);
-	peerInfo.ifidx = WIFI_IF_STA;
-	peerInfo.channel = 0;
-	peerInfo.encrypt = false;
-	if(esp_now_add_peer(&peerInfo) != ESP_OK)
+	esp_now_peer_info_t robot_peerInfo;
+	memcpy(robot_peerInfo.peer_addr, robotModuleAddress, 6);
+	robot_peerInfo.ifidx = WIFI_IF_STA;
+	robot_peerInfo.channel = 0;
+	robot_peerInfo.encrypt = false;
+	if(esp_now_add_peer(&robot_peerInfo) != ESP_OK)
 		printf("Failed to add robot peer\n");
 
-	/*esp_now_peer_info_t cam_peerInfo;
+	esp_now_peer_info_t cam_peerInfo;
 	memcpy(cam_peerInfo.peer_addr, esp32CamAddress, 6);
 	cam_peerInfo.ifidx = WIFI_IF_STA;
-	cam_peerInfo.channel = 0;
+	cam_peerInfo.channel = 1;
 	cam_peerInfo.encrypt = false;
 	if(esp_now_add_peer(&cam_peerInfo) != ESP_OK)
-		printf("Failed to add CAM peer\n");*/
-
-	esp_now_peer_info_t mqtt_peerInfo;
-	memcpy(mqtt_peerInfo.peer_addr, esp32_mqtt, 6);
-	ESP_ERROR_CHECK(esp_now_mod_peer(&mqtt_peerInfo));
-	mqtt_peerInfo.ifidx = WIFI_IF_STA;
-	mqtt_peerInfo.channel = 0;
-	mqtt_peerInfo.encrypt = false;
-
-	if(esp_now_add_peer(&peerInfo) != ESP_OK)
-		printf("Failed to add mqtt peer\n");
-
+		printf("Failed to add cam peer\n");
 }
 
 void gpio_interrupt_config()
 {
 	pitchEventGroup = xEventGroupCreate();
 
-	/*Configuring interrupts for both push buttons*/
+	//Configuring interrupts for both push buttons
 	gpio_config_t io_conf_forward;
 	//interrupt of rising edge
 	io_conf_forward.intr_type = GPIO_INTR_HIGH_LEVEL;
@@ -163,7 +150,6 @@ void data_Tx(void* pvParameters)
 	printf("data_Tx started\n");
 	int16_t dataTx[4];
 	dataQueue = xQueueCreate(4, sizeof(dataTx));
-	printf("%d\n", sizeof(dataTx));
 
 	for(;;) {
 		//Block waiting for sensor readings
@@ -171,16 +157,14 @@ void data_Tx(void* pvParameters)
 			dataTx[2] = forward;
 			dataTx[3] = backward;
 			xEventGroupWaitBits(pitchEventGroup, PITCH_FORWARD || PITCH_BACKWARD, pdTRUE, pdFALSE, 0);
-			printf("y: %d, flexAvg: %d, button: %d, %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
-			//ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
-			//ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, (int16_t*)&dataTx, sizeof(dataTx)));
-			ESP_ERROR_CHECK(esp_now_send(esp32_mqtt, (int16_t*)&dataTx, sizeof(dataTx)));
+			//printf("y: %d, flexAvg: %d, button: %d, %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
+			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
+			ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, (int16_t*)&dataTx, sizeof(dataTx)));
 			forward = 0;
 			backward = 0;
 		}
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
-	vTaskDelete(NULL);
 }
 
 void read_accelerometer(void* pvParameters)
@@ -218,10 +202,8 @@ void read_accelerometer(void* pvParameters)
 	i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
-
 	for(;;) {
-		// Tell the MPU6050 to position the internal register pointer to register
-		// MPU6050_ACCEL_XOUT_H.
+		// Positioning internal pointer to MPU6050_ACCEL_XOUT_H register.
 		cmd = i2c_cmd_link_create();
 		i2c_master_start(cmd);
 		i2c_master_write_byte(cmd, (I2C_ADDRESS << 1) | I2C_MASTER_WRITE, 1);
@@ -234,6 +216,7 @@ void read_accelerometer(void* pvParameters)
 		i2c_master_start(cmd);
 		i2c_master_write_byte(cmd, (I2C_ADDRESS << 1) | I2C_MASTER_READ, 1);
 
+		// Read six accel registers
 		i2c_master_read_byte(cmd, data,   0);
 		i2c_master_read_byte(cmd, data+1, 0);
 		i2c_master_read_byte(cmd, data+2, 0); // only concerned about
@@ -254,12 +237,15 @@ void read_accelerometer(void* pvParameters)
 
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
-	vTaskDelete(NULL);
 }
 
 void read_flex(void* pvParameters)
 {
-	int16_t index, middle, third, sum, avg;
+	int16_t index = 2500;
+	int16_t middle = 2500;
+	int16_t third = 2500;
+	int16_t old_index, old_middle, old_third;
+	int16_t sum, avg;
 
 	adc1_config_width(ADC_WIDTH_12Bit);
 	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_11db); //GPIO 36 - THIRD
@@ -267,27 +253,32 @@ void read_flex(void* pvParameters)
 	adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db); //GPIO 34 - INDEX
 
 	for(;;) {
+		old_index = index;
 		index = adc1_get_raw(ADC1_CHANNEL_6);
 		if(index == 4095)
 			index = 2500;
+
+		old_middle = middle;
 		middle = adc1_get_raw(ADC1_CHANNEL_3);
 		if(middle == 4095)
 			middle = 2200;
+
+		old_third = third;
 		third = adc1_get_raw(ADC1_CHANNEL_0);
 		if(third == 4095)
 			third = 3100;
-		sum = index+middle+third;
-		avg = sum/3;
 
-		//printf("%d,  %d,  %d\n", index, middle, third);
-		//printf("avg: %d\n", avg);
+		sum = index + middle + third + old_index + old_middle + old_third;
+		avg = sum/6;
+
 		avg = map(avg, 2100, 3200, 2000, 3500);
+
+		//printf("avg: %d\n", avg);
 
 		xTaskNotify(accelTask, avg, eSetValueWithOverwrite);
 
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
-	vTaskDelete(NULL);
 }
 
 void app_main(void)
