@@ -276,9 +276,19 @@ Week 20
 05/04/20
 	More work on webpage - trying to display message when robot is pitched forward or backward. Added esp32 camera and nodejs code.
 -------------------------------------------------------------------------------------------
+Week 21
 06/04/20
 	A big problem I've always had was an inconsistent output on the gripper servo. This is down to the poor connection to the flex sensors on the 
 	glove, and also because I'm calculating the average of three sensors, so it is going to be prone to a fluctuation in readings. I've come up 
 	with another software solution to improve this - By keeping track of the previous reading from each flex sensor plus attaining it's new value,
 	I can essentially smooth out the average some more. Now I get the average of 6 values (old and new value for each of the 3 sensors). This seems
 	to have made a decent improvement. Updated code.
+10/04/20
+	Ran into a problem. The ESP32 for my glove module doesn't work anymore. I think the flash memory has browned out as it doesn't seem to be able
+	to read from flash, and doesn't even get past the bootloader. It just keeps resetting. I don't think theres much I can do as I think its down
+	to the hardware. This problem arose from testing with an external battery, which is what I assume caused the problem.
+	Luckily I have a back up ESP32 Devkit V4 which is actually a better model. 
+	Before I ran into this problem, I fixed another 'problem' (not really a problem as code still worked fine before this) that I've had for months.
+	With ESP-NOW, the data sent must be of type unsigned 8 bit integer. As the sensor data I have been reading needs to be stored in a 16 bit signed
+	integer, I modified the esp_now.h file to allow data transfer of 16 bit ints. This worked fine but I wanted to change my code to adhere to the 
+	API as it was probably a better idea. So before sending the data I cast it to uint8, and on receiver side I cast it back to int16.  
