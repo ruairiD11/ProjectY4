@@ -36,7 +36,8 @@
 #define STEPPER_PIN_3	12
 #define STEPPER_PIN_4	13
 
-uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
+//uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
+uint8_t gloveModuleAddress[] = { 0x84, 0x0D, 0x8E, 0xE6, 0x7C, 0x44 };
 
 uint8_t forward_step[] = {  1, 0, 0, 0,
 							0, 1, 0, 0,
@@ -48,22 +49,49 @@ uint8_t backward_step[] = { 0, 0, 0, 1,
 							0, 1, 0, 0,
 							1, 0, 0, 0	};
 
-QueueHandle_t dataQueue = NULL;
+QueueHandle_t dataQueue, dataRxQueue = NULL;
 EventGroupHandle_t pitchEventGroup = NULL;
 
-void on_data_receive(const uint8_t* mac_addr, int16_t* data, int len)
+// Arduino map() function
+int16_t map(int16_t value, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
 {
-	int16_t dataRx[4];
+	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void on_data_receive(const uint8_t* mac_addr, const uint8_t* data, int len)
+{
+	// Receiving data as array of unsigned 8 bit integers
+	uint8_t dataRx[4];
 	memcpy(&dataRx, data, sizeof(dataRx));
 	printf("Bytes received from Glove module: %d\n", len);
-	xQueueSend(dataQueue, &dataRx, 0);
+	printf("%d,  %d,  %d,  %d\n", dataRx[0], dataRx[1], dataRx[2], dataRx[3]);
+	xQueueSend(dataRxQueue, &dataRx, 0);
+}
+
+void process_data(void *pvParameters)
+{
+	// Casting received data to 16 bit signed integers
+	uint8_t dataRx[4];
+	int16_t dataRx_converted[4];
+
+	for(;;) {
+		if(xQueueReceive(dataRxQueue, &dataRx, portMAX_DELAY)) {
+			dataRx_converted[0] = (int16_t)dataRx[0];
+			dataRx_converted[1] = (int16_t)dataRx[1];
+			dataRx_converted[2] = (int16_t)dataRx[2];
+			dataRx_converted[3] = (int16_t)dataRx[3];
+			//printf("%d,  %d,  %d,  %d\n", dataRx_converted[0], dataRx_converted[1], dataRx_converted[2], dataRx_converted[3]);
+			xQueueSend(dataQueue, &dataRx_converted, 0);
+		}
+	}
+	vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 void servo_write(void* pvParameters)
 {
 	int16_t dataRx[4];
-	int16_t gripperValue = 0;
-	int16_t rollValue = 0;
+	int16_t rollValue, gripperValue = 0;
+	uint8_t forward_state, backward_state = 0;
 
 	/*---Gripper Servo Configuration---*/
 	ledc_timer_config_t gripper_timer_conf;
@@ -100,22 +128,25 @@ void servo_write(void* pvParameters)
 	for(;;) {
 		//Wait forever for incoming data
 		if(xQueueReceive(dataQueue, &dataRx, portMAX_DELAY)) {
-			rollValue = dataRx[0];
-			gripperValue = dataRx[1];
-			if(dataRx[2] == 1)
-				xEventGroupSetBits(pitchEventGroup, PITCH_FORWARD);
-			else if(dataRx[3] == 1)
-				xEventGroupSetBits(pitchEventGroup, PITCH_BACKWARD);
 
-			//printf("accelY: %d, flexAvg: %d, button: %d, %d\n", rollValue, gripperValue, dataRx[2], dataRx[3]);
-			//printf("grip: %d, roll %d\n", gripperValue, rollValue);
+			rollValue = map(dataRx[0], 0, 200, 1000, 4000);
+			gripperValue = map(dataRx[1], 0, 200, 2000, 3500);
+			forward_state = dataRx[2];
+			backward_state = dataRx[3];
+
+			printf("%d,  %d,  %d,  %d\n", rollValue, gripperValue, forward_state, backward_state);
+
+			if(forward_state == 1){
+				xEventGroupSetBits(pitchEventGroup, PITCH_FORWARD);
+			}
+			else if(backward_state == 1)
+				xEventGroupSetBits(pitchEventGroup, PITCH_BACKWARD);
 
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, gripperValue);
 			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, rollValue);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
 			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
 		}
-
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 }
@@ -137,6 +168,7 @@ void wifi_init()
 	if(esp_now_add_peer(&glove_peerInfo) != ESP_OK)
 		printf("Failed to add glove peer\n");
 
+	dataRxQueue = xQueueCreate(4, 4);
 	dataQueue = xQueueCreate(4, 8);
 	pitchEventGroup = xEventGroupCreate();
 
@@ -168,6 +200,7 @@ void stepper_write(void* pvParameters)
 					vTaskDelay(pdMS_TO_TICKS(10));
 				}
 			}
+			// Set stepper pins back to 0
 			gpio_set_level(STEPPER_PIN_1, 0);
 			gpio_set_level(STEPPER_PIN_2, 0);
 			gpio_set_level(STEPPER_PIN_3, 0);
@@ -183,22 +216,21 @@ void stepper_write(void* pvParameters)
 					vTaskDelay(pdMS_TO_TICKS(10));
 				}
 			}
+			// Set stepper pins back to 0
 			gpio_set_level(STEPPER_PIN_1, 0);
 			gpio_set_level(STEPPER_PIN_2, 0);
 			gpio_set_level(STEPPER_PIN_3, 0);
 			gpio_set_level(STEPPER_PIN_4, 0);
 		}
-
-		vTaskDelay(pdMS_TO_TICKS(100));
+		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 }
-
-
 
 void app_main(void)
 {
 	nvs_flash_init();
 	wifi_init();
-	xTaskCreatePinnedToCore(&servo_write, "servo_write", 2048, NULL, 5, NULL, 0);
+	xTaskCreatePinnedToCore(&servo_write, "servo_write", 2048, NULL, 5, NULL, 1);
 	xTaskCreatePinnedToCore(&stepper_write, "stepper_write", 2048, NULL, 4, NULL, 1);
+	xTaskCreatePinnedToCore(&process_data, "process_data", 2048, NULL, 6, NULL, 0);
 }

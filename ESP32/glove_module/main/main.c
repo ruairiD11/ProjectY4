@@ -36,12 +36,13 @@
 
 #define MPU6050_ACCEL_XOUT_H 0x3B
 #define MPU6050_PWR_MGMT_1   0x6B
+#define MPU6050_ACCEL_CONFIG 0x1C
 
 QueueHandle_t dataQueue = NULL;
 EventGroupHandle_t pitchEventGroup;
 TaskHandle_t flexTask, accelTask = NULL;
 
-uint8_t forward, backward = 0;
+uint8_t forward_state, backward_state = 0;
 
 uint8_t robotModuleAddress[] = { 0xb4, 0xe6, 0x2d, 0xe3, 0xd2, 0x6d };
 uint8_t esp32CamAddress[] = { 0xC4, 0x4F, 0x33, 0x3A, 0x0C, 0x81 };
@@ -51,7 +52,7 @@ void IRAM_ATTR forward_isr_handler(void* arg)
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
 	if(arg && PITCH_FORWARD) {
-		forward = 1;
+		forward_state = 1;
 		xEventGroupSetBitsFromISR(pitchEventGroup, PITCH_FORWARD, &xHigherPriorityTaskWoken);
 	}
 }
@@ -61,7 +62,7 @@ void IRAM_ATTR backward_isr_handler(void* arg)
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
 	if(arg && PITCH_BACKWARD) {
-		backward = 1;
+		backward_state = 1;
 		xEventGroupSetBitsFromISR(pitchEventGroup, PITCH_BACKWARD, &xHigherPriorityTaskWoken);
 	}
 }
@@ -107,12 +108,12 @@ void wifi_init()
 	cam_peerInfo.encrypt = false;
 	if(esp_now_add_peer(&cam_peerInfo) != ESP_OK)
 		printf("Failed to add cam peer\n");
+
+	pitchEventGroup = xEventGroupCreate();
 }
 
 void gpio_interrupt_config()
 {
-	pitchEventGroup = xEventGroupCreate();
-
 	//Configuring interrupts for both push buttons
 	gpio_config_t io_conf_forward;
 	//interrupt of rising edge
@@ -147,21 +148,24 @@ void gpio_interrupt_config()
 
 void data_Tx(void* pvParameters)
 {
-	printf("data_Tx started\n");
-	int16_t dataTx[4];
-	dataQueue = xQueueCreate(4, sizeof(dataTx));
+	//printf("data_Tx started\n");
+	uint8_t dataTx[4];
+	dataQueue = xQueueCreate(2, sizeof(dataTx));
 
 	for(;;) {
-		//Block waiting for sensor readings
+		// Block waiting for sensor readings
 		if(xQueueReceive(dataQueue, &dataTx, portMAX_DELAY)) {
-			dataTx[2] = forward;
-			dataTx[3] = backward;
+			dataTx[2] = forward_state;
+			dataTx[3] = backward_state;
+			printf("%d,  %d,  %d,  %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
+
+			// Checking if an event flag was set by a push-button to pitch forward/backward
 			xEventGroupWaitBits(pitchEventGroup, PITCH_FORWARD || PITCH_BACKWARD, pdTRUE, pdFALSE, 0);
-			//printf("y: %d, flexAvg: %d, button: %d, %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
-			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, (int16_t*)&dataTx, sizeof(dataTx)));
-			ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, (int16_t*)&dataTx, sizeof(dataTx)));
-			forward = 0;
-			backward = 0;
+			// Transmit data
+			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, &dataTx, sizeof(dataTx)));
+			ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, &dataTx, sizeof(dataTx)));
+			forward_state = 0;
+			backward_state = 0;
 		}
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
@@ -170,8 +174,8 @@ void data_Tx(void* pvParameters)
 void read_accelerometer(void* pvParameters)
 {
 	uint8_t data[14];
-	int16_t dataTx[2];
-	int16_t flex_avg;
+	uint8_t dataTx[2];
+	int16_t accel_y, flex_avg;
 
 	i2c_config_t conf;
 	conf.mode = I2C_MODE_MASTER;
@@ -230,9 +234,11 @@ void read_accelerometer(void* pvParameters)
 
 		//Wait forever for flex average value from flex task
 		flex_avg = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		dataTx[0] = (data[2] << 8) | data[3];
-		dataTx[0] = map(dataTx[0], -17000, 17000, 1000, 4000);
-		dataTx[1] = flex_avg;
+		accel_y = (data[2] << 8) | data[3];
+
+		dataTx[0] = map(accel_y, -17000, 17000, 0, 255);
+		dataTx[1] = map(flex_avg, 2000, 3500, 0, 255);
+
 		xQueueSend(dataQueue, &dataTx, 0);
 
 		vTaskDelay(pdMS_TO_TICKS(50));
@@ -272,8 +278,6 @@ void read_flex(void* pvParameters)
 		avg = sum/6;
 
 		avg = map(avg, 2100, 3200, 2000, 3500);
-
-		//printf("avg: %d\n", avg);
 
 		xTaskNotify(accelTask, avg, eSetValueWithOverwrite);
 
