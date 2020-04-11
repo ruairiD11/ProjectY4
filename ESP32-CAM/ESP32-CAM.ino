@@ -24,23 +24,19 @@ char CLIENT_ID[] = "espClient";
 char TOPIC[] = "myESP32/esp32topic";
 
 int status = WL_IDLE_STATUS;
-uint8_t timer = 0;
-char payload[512]; // <--- LESS BYTES?
-char rcvdPayload[512];
+char payload[8]; 
 
 // Glove module ESP32 MAC address
-uint8_t gloveModuleAddress[] = { 0x3c, 0x71, 0xbf, 0xa1, 0x34, 0x88 };
+uint8_t gloveModuleAddress[] = { 0x84, 0x0D, 0x8E, 0xE6, 0x7C, 0x44 };
 
-int16_t sensorDataRx[4];
+uint8_t sensorDataRx[4];
 
 void sub_callback_handler(char *topicName, int payloadLen, char *payLoad)
 {
-  strncpy(rcvdPayload, payLoad, payloadLen);
-  rcvdPayload[payloadLen] = 0;
-  // only runs when message received?
+  // do nothing
 }
 
-void on_data_receive(const uint8_t* mac_addr, const int16_t* incomingData, int len)
+void on_data_receive(const uint8_t* mac_addr, const uint8_t* incomingData, int len)
 {
   memcpy(&sensorDataRx, incomingData, sizeof(sensorDataRx));
 }
@@ -165,6 +161,12 @@ void init_esp_now()
 
 void topic_publish()
 {
+  // Convert data back to 16-bit signed ints
+  sensorDataRx[0] = (int16_t) sensorDataRx[0]; 
+  sensorDataRx[1] = (int16_t) sensorDataRx[1]; 
+  sensorDataRx[2] = (int16_t) sensorDataRx[2]; 
+  sensorDataRx[3] = (int16_t) sensorDataRx[3]; 
+  
   sprintf(payload,"%d, %d, %d, %d", sensorDataRx[0], sensorDataRx[1], 
                                     sensorDataRx[2], sensorDataRx[3]);
   if(hornbill.publish(TOPIC, payload) == 0)

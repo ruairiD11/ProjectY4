@@ -94,7 +94,7 @@ typedef struct esp_now_peer_num {
   * @param     data received data
   * @param     data_len length of received data
   */
-typedef void (*esp_now_recv_cb_t)(const uint8_t *mac_addr, const int16_t *data, int data_len);
+typedef void (*esp_now_recv_cb_t)(const uint8_t *mac_addr, const uint8_t *data, int data_len);
 
 /**
   * @brief     Callback function of sending ESPNOW data
