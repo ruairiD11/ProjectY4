@@ -49,22 +49,12 @@ uint8_t esp32CamAddress[] = { 0xC4, 0x4F, 0x33, 0x3A, 0x0C, 0x81 };
 
 void IRAM_ATTR forward_isr_handler(void* arg)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-	if(arg && PITCH_FORWARD) {
-		forward_state = 1;
-		xEventGroupSetBitsFromISR(pitchEventGroup, PITCH_FORWARD, &xHigherPriorityTaskWoken);
-	}
+	forward_state = 1;
 }
 
 void IRAM_ATTR backward_isr_handler(void* arg)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-	if(arg && PITCH_BACKWARD) {
-		backward_state = 1;
-		xEventGroupSetBitsFromISR(pitchEventGroup, PITCH_BACKWARD, &xHigherPriorityTaskWoken);
-	}
+	backward_state = 1;
 }
 
 void on_data_sent(const uint8_t* mac_addr, esp_now_send_status_t status)
@@ -114,41 +104,29 @@ void wifi_init()
 
 void gpio_interrupt_config()
 {
-	//Configuring interrupts for both push buttons
 	gpio_config_t io_conf_forward;
-	//interrupt of rising edge
 	io_conf_forward.intr_type = GPIO_INTR_HIGH_LEVEL;
-	//bit mask of the pins
 	io_conf_forward.pin_bit_mask = (1<<PITCH_FORWARD);
-	//set as input mode
 	io_conf_forward.mode = GPIO_MODE_INPUT;
-	//enable pull-up mode
 	io_conf_forward.pull_up_en = 1;
 	io_conf_forward.pull_down_en = 0;
 	gpio_config(&io_conf_forward);
 
 	gpio_config_t io_conf_backward;
-	//interrupt of rising edge
 	io_conf_backward.intr_type = GPIO_INTR_HIGH_LEVEL;
-	//bit mask of the pins
 	io_conf_backward.pin_bit_mask = (1<<PITCH_BACKWARD);
-	//set as input mode
 	io_conf_backward.mode = GPIO_MODE_INPUT;
-	//enable pull-up mode
 	io_conf_backward.pull_up_en = 1;
 	io_conf_backward.pull_down_en = 0;
 	gpio_config(&io_conf_backward);
 
-	//install gpio isr service
-	gpio_install_isr_service(0); //no flags
-	//hook isr handler for specific gpio pin
+	gpio_install_isr_service(0);
 	gpio_isr_handler_add(PITCH_FORWARD, forward_isr_handler, (void*) PITCH_FORWARD);
 	gpio_isr_handler_add(PITCH_BACKWARD, backward_isr_handler, (void*) PITCH_BACKWARD);
 }
 
 void data_Tx(void* pvParameters)
 {
-	//printf("data_Tx started\n");
 	uint8_t dataTx[4];
 	dataQueue = xQueueCreate(2, sizeof(dataTx));
 
@@ -159,11 +137,9 @@ void data_Tx(void* pvParameters)
 			dataTx[3] = backward_state;
 			printf("%d,  %d,  %d,  %d\n", dataTx[0], dataTx[1], dataTx[2], dataTx[3]);
 
-			// Checking if an event flag was set by a push-button to pitch forward/backward
-			xEventGroupWaitBits(pitchEventGroup, PITCH_FORWARD || PITCH_BACKWARD, pdTRUE, pdFALSE, 0);
 			// Transmit data
-			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, &dataTx, sizeof(dataTx)));
-			ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, &dataTx, sizeof(dataTx)));
+			ESP_ERROR_CHECK(esp_now_send(robotModuleAddress, dataTx, sizeof(dataTx)));
+			ESP_ERROR_CHECK(esp_now_send(esp32CamAddress, dataTx, sizeof(dataTx)));
 			forward_state = 0;
 			backward_state = 0;
 		}

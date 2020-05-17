@@ -21,6 +21,7 @@ router.get('/', function(req, res, next) {
   res.render('index');
 });
 
+// Subscribing to AWS IoT Core MQTT broker using certificates
 var device = awsIot.device({
   keyPath: "C:\\nodejs\\MiniProject\\certs\\c45fc8bd81-private.pem.key",
   certPath: "C:\\nodejs\\MiniProject\\certs\\c45fc8bd81-certificate.pem.crt",
@@ -35,17 +36,12 @@ device
     device.subscribe('myESP32/esp32topic');
   });
 
+// Parsing incoming data
 device
   .on('message', function(topic, payload) {
     incomingData = payload.toString();
     sensorData.accel_y = incomingData[0].concat(incomingData[1]).concat(incomingData[2]).concat(incomingData[3]);
     sensorData.flex_avg = incomingData[6].concat(incomingData[7]).concat(incomingData[8]).concat(incomingData[9]);
-    sensorData.pitch_forward = incomingData[12];
-    sensorData.pitch_backward = incomingData[15];
-    //console.log(sensorData.accel_y);
-    //console.log(sensorData.flex_avg);
-    //console.log(sensorData.pitch_forward);
-    //console.log(sensorData.pitch_backward);
   });
 
   router.get('/getAccelY', function(req, res, next) {
@@ -54,14 +50,6 @@ device
 
   router.get('/getFlexAvg', function(req, res, next) {
     res.send(sensorData.flex_avg);
-  });
-
-  router.get('/getForwardPitch', function(req, res, next) {
-    res.send(sensorData.pitch_forward);
-  });
-
-  router.get('/getBackwardPitch', function(req, res, next) {
-    res.send(sensorData.pitch_backward);
   });
 
 module.exports = router;

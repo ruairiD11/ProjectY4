@@ -2,6 +2,7 @@
  *  Ruairi Doherty
  *  References:
  *    AWS_IOT Library for ESP32 - ExploreEmbedded / HornBill: https://github.com/ExploreEmbedded/Hornbill-Examples/tree/master/arduino-esp32/AWS_IOT
+ *    AWS_IOT Example: https://exploreembedded.com/wiki/AWS_IOT_with_Arduino_ESP32
  *    Arduino ESP32 Library CameraWebServer Example Code 
  */
 
@@ -23,13 +24,12 @@ char AWS_HOST[] = "a2ot8lh5ttyzzl-ats.iot.us-east-1.amazonaws.com";
 char CLIENT_ID[] = "espClient";
 char TOPIC[] = "myESP32/esp32topic";
 
-int status = WL_IDLE_STATUS;
-char payload[8]; 
+int status = WL_IDLE_STATUS; 
 
 // Glove module ESP32 MAC address
 uint8_t gloveModuleAddress[] = { 0x84, 0x0D, 0x8E, 0xE6, 0x7C, 0x44 };
 
-uint8_t sensorDataRx[4];
+QueueHandle_t dataQueue = NULL;
 
 void sub_callback_handler(char *topicName, int payloadLen, char *payLoad)
 {
@@ -38,7 +38,9 @@ void sub_callback_handler(char *topicName, int payloadLen, char *payLoad)
 
 void on_data_receive(const uint8_t* mac_addr, const uint8_t* incomingData, int len)
 {
-  memcpy(&sensorDataRx, incomingData, sizeof(sensorDataRx));
+  uint8_t rxData[4];
+  memcpy(&rxData, incomingData, sizeof(rxData));
+  xQueueSend(dataQueue, &rxData, sizeof(rxData));
 }
 
 void startCameraServer();
@@ -48,8 +50,11 @@ void setup() {
   camera_config();
   wifi_init();
   topic_subscribe();
+  dataQueue = xQueueCreate(4, 4);
+  xTaskCreate(&topic_publish, "topic_publish", 2048, NULL, 5, NULL);
 }
 
+// code in camera_config was provided by example Arduino program
 void camera_config() 
 {
   camera_config_t config;
@@ -159,26 +164,33 @@ void init_esp_now()
   delay(1000);
 }
 
-void topic_publish()
+void topic_publish(void* pvParameters)
 {
-  // Convert data back to 16-bit signed ints
-  sensorDataRx[0] = (int16_t) sensorDataRx[0]; 
-  sensorDataRx[1] = (int16_t) sensorDataRx[1]; 
-  sensorDataRx[2] = (int16_t) sensorDataRx[2]; 
-  sensorDataRx[3] = (int16_t) sensorDataRx[3]; 
+  uint8_t sensorDataRx[4];
+  int16_t sensorDataConverted[4];
+  char payload[36];
   
-  sprintf(payload,"%d, %d, %d, %d", sensorDataRx[0], sensorDataRx[1], 
-                                    sensorDataRx[2], sensorDataRx[3]);
-  if(hornbill.publish(TOPIC, payload) == 0)
-  {
-    Serial.print("Publish Message: ");
-    Serial.println(payload);
+  for(;;) {
+    if(xQueueReceive(dataQueue, &sensorDataRx, portMAX_DELAY)) {
+      // Convert data back to 16-bit signed ints
+      sensorDataConverted[0] = (int16_t) map(sensorDataRx[0], 0, 255, 1000, 4000); 
+      sensorDataConverted[1] = (int16_t) map(sensorDataRx[1], 0, 255, 2000, 3500); 
+      sensorDataConverted[2] = (int16_t) sensorDataRx[2]; 
+      sensorDataConverted[3] = (int16_t) sensorDataRx[3]; 
+      
+      sprintf(payload,"%d, %d, %d, %d", sensorDataConverted[0], sensorDataConverted[1], 
+                                        sensorDataConverted[2], sensorDataConverted[3]);
+                                        
+      if(hornbill.publish(TOPIC, payload) == 0)
+      {
+        Serial.print("Publish Message: ");
+        Serial.println(payload);
+      }
+      else
+        Serial.println("Publish Failed");
+    }
+    vTaskDelay(pdMS_TO_TICKS(50));
   }
-  else
-    Serial.println("Publish Failed");
-  delay(50);
 }
 
-void loop() {
-  topic_publish();
-}
+void loop() {}

@@ -54,8 +54,6 @@
               <strong>Glove Sensor Readings</strong></br></br>
               Accelerometer Y-Axis: <span id="accel_y"></span></br>
               Flex Sensors Average: <span id="flex_avg"></span></br></br>
-              <a id="pitch_forward" style="color: #a11b1b;"> PITCH FORWARD </br></a>
-              <a id="pitch_backward" style="color: #a11b1b;"> PITCH BACKWARD </a>
           </p>
 
         	</div>
@@ -66,9 +64,7 @@
     setInterval(function() {
          updateAccelY();
          updateFlexAvg();
-         getForwardPitch();
-         getBackwardPitch();
-    }, 200);
+    }, 500);
 
     function updateAccelY() {
       var xhttp = new XMLHttpRequest();
@@ -89,38 +85,6 @@
            }
       };
       xhttp.open("GET", "/getFlexAvg", true);
-      xhttp.send();
-    }
-
-    function getForwardPitch() {
-      var xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-              if (this.responseText == "1") {
-                document.getElementById("pitch_forward").style.visibility = "visible";
-              }
-              else {
-                document.getElementById("pitch_forward").style.visibility = "hidden";
-              }
-           }
-      };
-      xhttp.open("GET", "/getForwardPitch", true);
-      xhttp.send();
-    }
-
-    function getBackwardPitch() {
-      var xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-              if (this.responseText == "1") {
-                document.getElementById("pitch_backward").style.visibility = "visible";
-              }
-              else {
-                document.getElementById("pitch_backward").style.visibility = "hidden";
-              }
-           }
-      };
-      xhttp.open("GET", "/getBackwardPitch", true);
       xhttp.send();
     }
     </script>

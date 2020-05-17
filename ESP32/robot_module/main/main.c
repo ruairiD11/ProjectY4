@@ -19,7 +19,6 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "driver/adc.h"
-#include "driver/dac.h"
 #include "driver/ledc.h"
 #include "driver/i2c.h"
 #include "sdkconfig.h"
@@ -36,7 +35,6 @@
 #define STEPPER_PIN_3	12
 #define STEPPER_PIN_4	13
 
-//uint8_t gloveModuleAddress[] = { 0x3C, 0x71, 0xBF, 0xA1, 0x34, 0x88 };
 uint8_t gloveModuleAddress[] = { 0x84, 0x0D, 0x8E, 0xE6, 0x7C, 0x44 };
 
 uint8_t forward_step[] = {  1, 0, 0, 0,
@@ -64,23 +62,22 @@ void on_data_receive(const uint8_t* mac_addr, const uint8_t* data, int len)
 	uint8_t dataRx[4];
 	memcpy(&dataRx, data, sizeof(dataRx));
 	printf("Bytes received from Glove module: %d\n", len);
-	printf("%d,  %d,  %d,  %d\n", dataRx[0], dataRx[1], dataRx[2], dataRx[3]);
 	xQueueSend(dataRxQueue, &dataRx, 0);
 }
 
 void process_data(void *pvParameters)
 {
-	// Casting received data to 16 bit signed integers
 	uint8_t dataRx[4];
 	int16_t dataRx_converted[4];
 
 	for(;;) {
 		if(xQueueReceive(dataRxQueue, &dataRx, portMAX_DELAY)) {
+			// Casting received data to 16 bit signed integers
 			dataRx_converted[0] = (int16_t)dataRx[0];
 			dataRx_converted[1] = (int16_t)dataRx[1];
 			dataRx_converted[2] = (int16_t)dataRx[2];
 			dataRx_converted[3] = (int16_t)dataRx[3];
-			//printf("%d,  %d,  %d,  %d\n", dataRx_converted[0], dataRx_converted[1], dataRx_converted[2], dataRx_converted[3]);
+
 			xQueueSend(dataQueue, &dataRx_converted, 0);
 		}
 	}
@@ -133,8 +130,6 @@ void servo_write(void* pvParameters)
 			gripperValue = map(dataRx[1], 0, 200, 2000, 3500);
 			forward_state = dataRx[2];
 			backward_state = dataRx[3];
-
-			printf("%d,  %d,  %d,  %d\n", rollValue, gripperValue, forward_state, backward_state);
 
 			if(forward_state == 1){
 				xEventGroupSetBits(pitchEventGroup, PITCH_FORWARD);
